@@ -1,6 +1,6 @@
 {
-  "name": "BundaFlow",
-  "short_name": "BundaFlow",
+  "name": "Bunnynotes",
+  "short_name": "Bunnynotes",
   "description": "Organize your home, money, and daily life with joy",
   "start_url": "/",
   "display": "standalone",
@@ -8,13 +8,13 @@
   "theme_color": "#81515b",
   "icons": [
     {
-      "src": "https://picsum.photos/seed/rabbit/192/192",
+      "src": "/icon.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "https://picsum.photos/seed/rabbit/512/512",
+      "src": "/icon.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"

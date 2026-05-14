@@ -1,6 +1,6 @@
 {
-  "name": "Remix: bunny",
-  "description": "",
+  "name": "Bunnynotes",
+  "description": "A cozy home and finance organizer for busy moms.",
   "requestFramePermissions": [],
   "majorCapabilities": []
 }

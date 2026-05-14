@@ -8,14 +8,14 @@ const quicksand = Quicksand({
 });
 
 export const metadata: Metadata = {
-  title: 'BundaFlow',
+  title: 'Bunnynotes',
   description: 'Organize your home, money, and daily life with joy',
   manifest: '/manifest.json',
   themeColor: '#81515b',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'BundaFlow',
+    title: 'Bunnynotes',
   },
 };
 
