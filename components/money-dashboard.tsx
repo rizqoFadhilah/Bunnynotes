@@ -6,6 +6,14 @@ import clsx from 'clsx';
 import { Pin, HelpCircle, ChevronLeft, ChevronRight, Filter, X, Trash2, Loader2 } from 'lucide-react';
 import { Utensils, Home, Baby, Sparkles, Car, PiggyBank, ShoppingBag, Briefcase, Heart, Smile } from 'lucide-react';
 import { deleteTransaction } from '@/lib/api';
+import { 
+  PieChart, 
+  Pie, 
+  Cell, 
+  ResponsiveContainer, 
+  Legend, 
+  Tooltip as RechartsTooltip 
+} from 'recharts';
 
 const ICON_MAP: Record<string, any> = {
   Utensils, Home, Baby, Sparkles, Car, PiggyBank, ShoppingBag, Briefcase, Heart, Smile
@@ -40,26 +48,68 @@ export default function MoneyDashboard({ transactions, categories }: { transacti
   sunday.setDate(monday.getDate() + 6);
   sunday.setHours(23, 59, 59, 999);
 
-  const dailySpending = [0, 0, 0, 0, 0, 0, 0]; // Mon to Sun
-  let totalWeeklySpending = 0;
   const weekDays = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
+  
+  const dailySpending = useMemo(() => {
+    const spending = [0, 0, 0, 0, 0, 0, 0];
+    localTransactions.forEach((t: any) => {
+      if (t.Tipe === 'Expense') {
+        const tDate = new Date(t.Tanggal);
+        tDate.setHours(0, 0, 0, 0);
+        const diffTime = tDate.getTime() - monday.getTime();
+        const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+        if (diffDays >= 0 && diffDays < 7) {
+          spending[diffDays] += Number(t.Nominal) || 0;
+        }
+      }
+    });
+    return spending;
+  }, [localTransactions, monday]);
 
-  localTransactions.forEach((t: any) => {
-    if (t.Tipe === 'Expense') {
+  const totalWeeklySpending = useMemo(() => 
+    dailySpending.reduce((sum, amount) => sum + amount, 0),
+  [dailySpending]);
+
+  const maxSpending = useMemo(() => Math.max(...dailySpending, 1), [dailySpending]);
+
+  const categoryData = useMemo(() => {
+    const dataMap: Record<string, number> = {};
+    localTransactions.forEach((t: any) => {
       const tDate = new Date(t.Tanggal);
       tDate.setHours(0, 0, 0, 0);
-      const diffTime = tDate.getTime() - monday.getTime();
-      const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
-      if (diffDays >= 0 && diffDays < 7) {
-        const val = Number(t.Nominal) || 0;
-        dailySpending[diffDays] += val;
-        totalWeeklySpending += val;
+      if (t.Tipe === 'Expense' && tDate >= monday && tDate <= sunday) {
+        const catId = t.Kategori;
+        const category = categories.find(c => c.ID === catId || c.Nama === catId);
+        const label = category ? category.Nama : 'Lainnya';
+        dataMap[label] = (dataMap[label] || 0) + (Number(t.Nominal) || 0);
       }
-    }
-  });
+    });
+    
+    return Object.entries(dataMap).map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value);
+  }, [localTransactions, monday, sunday, categories]);
 
-  const maxSpending = Math.max(...dailySpending, 1);
-  
+  const PIE_COLORS = [
+    '#F8BBD0', // Soft Pink
+    '#B2EBF2', // Soft Toska
+    '#E1BEE7', // Soft Purple
+    '#FFF9C4', // Soft Yellow
+    '#FFCCBC', // Soft Coral
+    '#B3E5FC', // Soft Sky Blue
+    '#C8E6C9', // Soft Mint
+    '#FCE4EC', // Very Soft Pink
+  ];
+
+  const BAR_COLORS = [
+    '#F8BBD0', // Soft Pink
+    '#B2EBF2', // Soft Toska
+    '#E1BEE7', // Soft Purple
+    '#FFF9C4', // Soft Yellow
+    '#FFCCBC', // Soft Coral
+    '#B3E5FC', // Soft Sky Blue
+    '#C8E6C9', // Soft Mint
+  ];
+
   // LIST LOGIC
   const filteredTransactions = useMemo(() => {
     let result = [...localTransactions];
@@ -85,10 +135,9 @@ export default function MoneyDashboard({ transactions, categories }: { transacti
     try {
       await deleteTransaction(id);
       setLocalTransactions(prev => prev.filter(t => t.ID !== id));
-      router.refresh(); // Update server side as well
+      router.refresh();
     } catch (e) {
       console.error(e);
-      // alert('Gagal menghapus transaksi'); // Alert is blocked in iframe anyway
     } finally {
       setIsDeleting(null);
     }
@@ -105,6 +154,11 @@ export default function MoneyDashboard({ transactions, categories }: { transacti
     }
   };
 
+  const formatShortValue = (value: number) => {
+    if (value === 0) return '';
+    return `Rp.${value.toLocaleString('id-ID')}`;
+  };
+
   return (
     <div className="flex flex-col gap-8">
       {/* Weekly Spending Chart */}
@@ -115,7 +169,7 @@ export default function MoneyDashboard({ transactions, categories }: { transacti
         </div>
         
         <div className="flex items-center justify-between mb-8 mt-2">
-          <button onClick={() => setWeekOffset(o => o - 1)} className="p-2 bg-surface text-on-surface rounded-full shadow-sm border border-outline-variant hover:bg-surface-variant">
+          <button onClick={() => setWeekOffset(o => o - 1)} className="p-2 bg-surface text-on-surface rounded-full shadow-sm border border-outline-variant hover:bg-surface-variant z-10 relative">
             <ChevronLeft className="w-5 h-5" />
           </button>
           <div className="text-center">
@@ -124,41 +178,78 @@ export default function MoneyDashboard({ transactions, categories }: { transacti
               {monday.toLocaleDateString('id-ID', { month: 'short', day: 'numeric' })} - {sunday.toLocaleDateString('id-ID', { month: 'short', day: 'numeric' })}
             </p>
           </div>
-          <button onClick={() => setWeekOffset(o => o + 1)} disabled={weekOffset >= 0} className={`p-2 rounded-full shadow-sm border border-outline-variant ${weekOffset >= 0 ? 'bg-surface-variant/50 text-outline cursor-not-allowed' : 'bg-surface text-on-surface hover:bg-surface-variant'}`}>
+          <button onClick={() => setWeekOffset(o => o + 1)} disabled={weekOffset >= 0} className={`p-2 rounded-full shadow-sm border border-outline-variant z-10 relative ${weekOffset >= 0 ? 'bg-surface-variant/50 text-outline cursor-not-allowed' : 'bg-surface text-on-surface hover:bg-surface-variant'}`}>
             <ChevronRight className="w-5 h-5" />
           </button>
         </div>
         
-        <div className="flex items-end justify-between h-48 gap-2 xs:gap-3 pb-2 border-b-2 border-dashed border-outline-variant/40 pt-4">
+        <div className="flex items-end justify-between h-48 gap-2 xs:gap-3 pb-2 border-b-2 border-dashed border-outline-variant/40 pt-10">
           {dailySpending.map((amount, idx) => {
             const heightPercent = maxSpending > 1 ? Math.max((amount / maxSpending) * 100, 5) : 5;
             const isPeak = amount === maxSpending && amount > 0;
             
-            // Dynamic colorful classes based on index (to match the original scrapbook design)
-            const colorClass = idx % 3 === 0 ? 'bg-secondary-fixed group-hover:bg-secondary-container' : 
-                               idx % 3 === 1 ? 'bg-tertiary-container group-hover:bg-tertiary-fixed' : 
-                                               'bg-surface-container-high group-hover:bg-primary-container';
             return (
               <div key={idx} className="w-full flex flex-col justify-end items-center group h-full relative">
-                {/* Tooltip on hover */}
-                <div className="opacity-0 group-hover:opacity-100 transition-opacity absolute -top-8 bg-surface-container-highest text-on-surface text-[10px] sm:text-xs font-bold px-2 py-1 rounded shadow-sm z-10 whitespace-nowrap pointer-events-none">
-                  Rp {amount.toLocaleString('id-ID')}
-                </div>
+                {/* Spending info visible without hover */}
+                {amount > 0 && (
+                  <div className="absolute -top-16 text-on-surface text-[9px] font-bold px-1 whitespace-nowrap pointer-events-none transform -rotate-90 origin-bottom pb-1">
+                    {formatShortValue(amount)}
+                  </div>
+                )}
                 
                 <div 
-                  className={clsx("w-full rounded-t-lg relative transition-all", isPeak ? "bg-primary-container" : colorClass)}
-                  style={{ height: `${heightPercent}%` }}
+                  className="w-full rounded-t-lg relative transition-all"
+                  style={{ 
+                    height: `${heightPercent}%`,
+                    backgroundColor: BAR_COLORS[idx % BAR_COLORS.length]
+                  }}
                 >
-                  {isPeak && (
-                    <span className="absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] font-bold text-primary bg-white px-1 xs:px-2 py-0.5 xs:py-1 rounded-full shadow-sm border border-primary/20">Peak</span>
-                  )}
                 </div>
-                <span className={`text-[10px] xs:text-xs font-bold mt-2 ${isPeak ? 'text-primary' : 'text-on-surface-variant'}`}>{weekDays[idx]}</span>
+                <span className="text-[10px] xs:text-xs font-bold mt-2 text-on-surface-variant">{weekDays[idx]}</span>
               </div>
             );
           })}
         </div>
       </section>
+
+      {/* Expense by Category Pie Chart */}
+      {categoryData.length > 0 && (
+        <section className="bg-surface-container-lowest rounded-xl p-[24px] shadow-[0_6px_0_0_#ffd8e4] border-4 border-white relative mt-2 transform -rotate-1 hover:rotate-0 transition-transform duration-300">
+          <div className="absolute -top-3 left-1/4 -translate-x-1/2 w-20 h-6 bg-tertiary-container/80 rotate-2 shadow-sm rounded-sm backdrop-blur-sm opacity-90 washi-tape"></div>
+          
+          <h2 className="text-xl font-bold text-on-surface mb-4">Pengeluaran per Kategori</h2>
+          
+          <div className="h-64 mt-2 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Legend layout="horizontal" align="center" verticalAlign="bottom" />
+                <Pie
+                  data={categoryData}
+                  cx="50%"
+                  cy="45%"
+                  innerRadius={60}
+                  outerRadius={80}
+                  paddingAngle={5}
+                  dataKey="value"
+                  animationDuration={1500}
+                  label={({ value }) => `Rp.${value.toLocaleString('id-ID')}`}
+                >
+                  {categoryData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} stroke="rgba(255,255,255,0.5)" />
+                  ))}
+                </Pie>
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+          
+          <div className="mt-4 p-4 bg-tertiary-container/20 rounded-lg border-2 border-white sticker-shadow">
+            <p className="text-sm font-bold text-on-tertiary-container flex items-center gap-2">
+              <Sparkles className="w-4 h-4" />
+              Kategori Terbesar: {categoryData[0].name}
+            </p>
+          </div>
+        </section>
+      )}
 
       {/* Transaction History (Polaroid List) */}
       <section className="space-y-4">
