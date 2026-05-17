@@ -52,9 +52,9 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
     <>
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
         {/* Background Decorative Clay Shapes */}
-        <div className="absolute -top-20 -left-20 w-64 h-64 bg-clay-pink/20 rounded-full blur-3xl"></div>
-        <div className="absolute top-1/2 -right-20 w-80 h-80 bg-clay-blue/20 rounded-full blur-3xl"></div>
-        <div className="absolute -bottom-20 left-1/4 w-72 h-72 bg-clay-yellow/20 rounded-full blur-3xl"></div>
+        <div className="absolute -top-20 -left-20 w-80 h-80 bg-clay-pink/30 rounded-full blur-3xl"></div>
+        <div className="absolute top-1/2 -right-20 w-96 h-96 bg-clay-pink/20 rounded-full blur-3xl"></div>
+        <div className="absolute -bottom-20 left-1/4 w-72 h-72 bg-clay-blue/20 rounded-full blur-3xl"></div>
       </div>
       <TopAppBar />
       <main className="relative z-10 pt-[100px] px-[20px] max-w-lg mx-auto space-y-8 pb-32">

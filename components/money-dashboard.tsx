@@ -22,7 +22,8 @@ const ICON_MAP: Record<string, any> = {
 export default function MoneyDashboard({ transactions, categories }: { transactions: any[], categories: any[] }) {
   const router = useRouter();
   const [localTransactions, setLocalTransactions] = useState(transactions);
-  const [weekOffset, setWeekOffset] = useState(0); // 0 = current week, -1 = last week, etc.
+  const [timeRange, setTimeRange] = useState<'week' | 'month' | 'year'>('week');
+  const [offset, setOffset] = useState(0); 
   
   useEffect(() => {
     setLocalTransactions(transactions);
@@ -33,51 +34,84 @@ export default function MoneyDashboard({ transactions, categories }: { transacti
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
 
-  // CHART LOGIC
-  const todayDate = new Date();
-  todayDate.setDate(todayDate.getDate() + (weekOffset * 7));
-  
-  let dayOfWeek = todayDate.getDay();
-  if (dayOfWeek === 0) dayOfWeek = 7; // Make Sunday 7 instead of 0
-  
-  const monday = new Date(todayDate);
-  monday.setDate(todayDate.getDate() - dayOfWeek + 1);
-  monday.setHours(0, 0, 0, 0);
-  
-  const sunday = new Date(monday);
-  sunday.setDate(monday.getDate() + 6);
-  sunday.setHours(23, 59, 59, 999);
+  // DATE LOGIC
+  const { startDate, endDate, labels, periodTitle } = useMemo(() => {
+    const now = new Date();
+    let start = new Date();
+    let end = new Date();
+    let labels: string[] = [];
+    let periodTitle = '';
 
-  const weekDays = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
-  
-  const dailySpending = useMemo(() => {
-    const spending = [0, 0, 0, 0, 0, 0, 0];
+    if (timeRange === 'week') {
+      const baseDate = new Date();
+      baseDate.setDate(now.getDate() + (offset * 7));
+      let dayOfWeek = baseDate.getDay();
+      if (dayOfWeek === 0) dayOfWeek = 7;
+      
+      start = new Date(baseDate);
+      start.setDate(baseDate.getDate() - dayOfWeek + 1);
+      start.setHours(0, 0, 0, 0);
+      
+      end = new Date(start);
+      end.setDate(start.getDate() + 6);
+      end.setHours(23, 59, 59, 999);
+      
+      labels = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
+      periodTitle = `${start.toLocaleDateString('id-ID', { month: 'short', day: 'numeric' })} - ${end.toLocaleDateString('id-ID', { month: 'short', day: 'numeric' })}`;
+    } else if (timeRange === 'month') {
+      start = new Date(now.getFullYear(), now.getMonth() + offset, 1);
+      end = new Date(now.getFullYear(), now.getMonth() + offset + 1, 0);
+      end.setHours(23, 59, 59, 999);
+      
+      labels = ['W1', 'W2', 'W3', 'W4', 'W5'];
+      periodTitle = start.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
+    } else {
+      start = new Date(now.getFullYear() + offset, 0, 1);
+      end = new Date(now.getFullYear() + offset, 11, 31, 23, 59, 59, 999);
+      
+      labels = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+      periodTitle = start.getFullYear().toString();
+    }
+
+    return { startDate: start, endDate: end, labels, periodTitle };
+  }, [timeRange, offset]);
+
+  const aggregatedSpending = useMemo(() => {
+    let data: number[] = new Array(labels.length).fill(0);
+    
     localTransactions.forEach((t: any) => {
       if (t.Tipe === 'Expense') {
         const tDate = new Date(t.Tanggal);
-        tDate.setHours(0, 0, 0, 0);
-        const diffTime = tDate.getTime() - monday.getTime();
-        const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
-        if (diffDays >= 0 && diffDays < 7) {
-          spending[diffDays] += Number(t.Nominal) || 0;
+        if (tDate >= startDate && tDate <= endDate) {
+          if (timeRange === 'week') {
+            let day = tDate.getDay();
+            if (day === 0) day = 7;
+            data[day - 1] += Number(t.Nominal) || 0;
+          } else if (timeRange === 'month') {
+            const date = tDate.getDate();
+            const weekIndex = Math.floor((date - 1) / 7);
+            data[Math.min(weekIndex, 4)] += Number(t.Nominal) || 0;
+          } else {
+            const month = tDate.getMonth();
+            data[month] += Number(t.Nominal) || 0;
+          }
         }
       }
     });
-    return spending;
-  }, [localTransactions, monday]);
+    return data;
+  }, [localTransactions, startDate, endDate, timeRange, labels.length]);
 
-  const totalWeeklySpending = useMemo(() => 
-    dailySpending.reduce((sum, amount) => sum + amount, 0),
-  [dailySpending]);
+  const totalPeriodSpending = useMemo(() => 
+    aggregatedSpending.reduce((sum, amount) => sum + amount, 0),
+  [aggregatedSpending]);
 
-  const maxSpending = useMemo(() => Math.max(...dailySpending, 1), [dailySpending]);
+  const maxSpending = useMemo(() => Math.max(...aggregatedSpending, 1), [aggregatedSpending]);
 
   const categoryData = useMemo(() => {
     const dataMap: Record<string, number> = {};
     localTransactions.forEach((t: any) => {
       const tDate = new Date(t.Tanggal);
-      tDate.setHours(0, 0, 0, 0);
-      if (t.Tipe === 'Expense' && tDate >= monday && tDate <= sunday) {
+      if (t.Tipe === 'Expense' && tDate >= startDate && tDate <= endDate) {
         const catId = t.Kategori;
         const category = categories.find(c => c.ID === catId || c.Nama === catId);
         const label = category ? category.Nama : 'Lainnya';
@@ -87,7 +121,7 @@ export default function MoneyDashboard({ transactions, categories }: { transacti
     
     return Object.entries(dataMap).map(([name, value]) => ({ name, value }))
       .sort((a, b) => b.value - a.value);
-  }, [localTransactions, monday, sunday, categories]);
+  }, [localTransactions, startDate, endDate, categories]);
 
   const PIE_COLORS = [
     '#FFB2BC', // clay-pink
@@ -161,25 +195,46 @@ export default function MoneyDashboard({ transactions, categories }: { transacti
 
   return (
     <div className="flex flex-col gap-8">
-      {/* Weekly Spending Chart */}
+      {/* Time Range Switcher */}
+      <section className="clay-card p-2 flex items-center gap-2 [--clay-card-bg:rgba(255,255,255,0.7)] border-white/60">
+        {(['week', 'month', 'year'] as const).map((range) => (
+          <button
+            key={range}
+            onClick={() => {
+              setTimeRange(range);
+              setOffset(0);
+            }}
+            className={clsx(
+              "flex-1 py-3 text-sm font-bold capitalize transition-all",
+              timeRange === range 
+                ? "clay-button [--clay-btn-bg:var(--color-primary)] text-white" 
+                : "text-on-surface/60 hover:text-on-surface"
+            )}
+          >
+            {range === 'week' ? 'Minggu' : range === 'month' ? 'Bulan' : 'Tahun'}
+          </button>
+        ))}
+      </section>
+
+      {/* Spending Chart */}
       <section className="clay-card p-[24px] [--clay-card-bg:var(--color-surface)] border-white/60 relative mt-2 transition-transform duration-300">
         <div className="flex items-center justify-between mb-8 mt-2">
-          <button onClick={() => setWeekOffset(o => o - 1)} className="w-10 h-10 clay-icon-container text-on-surface hover:bg-surface-variant z-10 relative">
+          <button onClick={() => setOffset(o => o - 1)} className="w-10 h-10 clay-icon-container text-on-surface hover:bg-surface-variant z-10 relative">
             <ChevronLeft className="w-5 h-5" />
           </button>
           <div className="text-center">
-            <h2 className="text-xl font-bold text-on-surface tracking-tight">Rp {totalWeeklySpending.toLocaleString('id-ID')}</h2>
+            <h2 className="text-xl font-bold text-on-surface tracking-tight">Rp {totalPeriodSpending.toLocaleString('id-ID')}</h2>
             <p className="text-xs font-bold text-primary/60 uppercase tracking-widest mt-1">
-              {monday.toLocaleDateString('id-ID', { month: 'short', day: 'numeric' })} - {sunday.toLocaleDateString('id-ID', { month: 'short', day: 'numeric' })}
+              {periodTitle}
             </p>
           </div>
-          <button onClick={() => setWeekOffset(o => o + 1)} disabled={weekOffset >= 0} className={clsx("w-10 h-10 clay-icon-container z-10 relative transition-opacity", weekOffset >= 0 ? 'opacity-20 cursor-not-allowed' : 'text-on-surface hover:bg-surface-variant')}>
+          <button onClick={() => setOffset(o => o + 1)} disabled={offset >= 0} className={clsx("w-10 h-10 clay-icon-container z-10 relative transition-opacity", offset >= 0 ? 'opacity-20 cursor-not-allowed' : 'text-on-surface hover:bg-surface-variant')}>
             <ChevronRight className="w-5 h-5" />
           </button>
         </div>
         
         <div className="flex items-end justify-between h-48 gap-2 xs:gap-3 pb-2 pt-10">
-          {dailySpending.map((amount, idx) => {
+          {aggregatedSpending.map((amount, idx) => {
             const heightPercent = maxSpending > 1 ? Math.max((amount / maxSpending) * 100, 8) : 8;
             
             return (
@@ -202,7 +257,7 @@ export default function MoneyDashboard({ transactions, categories }: { transacti
                   } as any}
                 >
                 </div>
-                <span className="text-[10px] font-bold mt-2 text-on-surface-variant uppercase">{weekDays[idx]}</span>
+                <span className="text-[10px] font-bold mt-2 text-on-surface-variant uppercase">{labels[idx]}</span>
               </div>
             );
           })}
