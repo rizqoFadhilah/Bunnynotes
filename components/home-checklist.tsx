@@ -54,22 +54,21 @@ export default function HomeChecklist({ initialAgendas }: { initialAgendas: any[
 
   if (!isClient) {
     return (
-      <section className="bg-surface-container-low rounded-xl p-[24px] relative soft-shadow-primary sticker-shadow border border-surface-variant mb-8 animate-pulse">
-        <div className="absolute top-4 -left-2 w-8 h-16 bg-surface-container rounded-r-lg border border-surface-variant shadow-sm flex items-center justify-center">
-          <MoreVertical className="w-4 h-4 text-outline" />
-        </div>
-        <h3 className="text-2xl font-bold text-primary mb-4 ml-6 flex items-center gap-2">
-          <Check className="w-6 h-6" />
+      <section className="clay-card p-[24px] relative border-white/40 mb-8 animate-pulse [--clay-card-bg:var(--color-surface-container-low)]">
+        <h3 className="text-2xl font-bold text-primary mb-4 flex items-center gap-2">
+          <div className="w-8 h-8 clay-icon-container shrink-0">
+            <Check className="w-5 h-5" />
+          </div>
           Checklist Hari Ini
         </h3>
-        <ul className="space-y-3 ml-6">
-          <li className="flex items-center gap-3 bg-surface-container-lowest p-3 rounded-lg border border-surface-variant/50">
-            <div className="w-6 h-6 rounded border-2 border-primary-container bg-primary-container/20"></div>
-            <div className="h-5 bg-surface-variant rounded w-3/4"></div>
+        <ul className="space-y-4">
+          <li className="flex items-center gap-4 clay-card p-4 [--clay-card-bg:var(--color-surface)] border-white/40">
+            <div className="w-8 h-8 clay-button [--clay-btn-bg:var(--color-primary-container)]"></div>
+            <div className="h-5 bg-surface-highest rounded w-3/4"></div>
           </li>
-          <li className="flex items-center gap-3 bg-surface-container-lowest p-3 rounded-lg border border-surface-variant/50">
-            <div className="w-6 h-6 rounded border-2 border-primary-container bg-primary-container/20"></div>
-            <div className="h-5 bg-surface-variant rounded w-1/2"></div>
+          <li className="flex items-center gap-4 clay-card p-4 [--clay-card-bg:var(--color-surface)] border-white/40">
+            <div className="w-8 h-8 clay-button [--clay-btn-bg:var(--color-primary-container)]"></div>
+            <div className="h-5 bg-surface-highest rounded w-1/2"></div>
           </li>
         </ul>
       </section>
@@ -80,20 +79,19 @@ export default function HomeChecklist({ initialAgendas }: { initialAgendas: any[
     <>
       {/* Checklist Hari Ini */}
       <section className={clsx(
-        "bg-surface-container-low rounded-xl p-[24px] relative soft-shadow-primary sticker-shadow border mb-8 transition-colors duration-500",
-        isAllCompleted ? "border-tertiary shadow-[0_4px_15px_rgba(50,77,52,0.1)]" : "border-surface-variant"
+        "clay-card p-[24px] relative border-white/40 mb-8 transition-all duration-500",
+        isAllCompleted ? "[--clay-card-bg:var(--color-tertiary-container)]" : "[--clay-card-bg:var(--color-surface-container-low)]"
       )}>
-        <div className="absolute top-4 -left-2 w-8 h-16 bg-surface-container rounded-r-lg border border-surface-variant shadow-sm flex items-center justify-center">
-          <MoreVertical className="w-4 h-4 text-outline" />
-        </div>
-        <h3 className="text-2xl font-bold text-primary mb-4 ml-6 flex items-center gap-2">
-          <Check className={clsx("w-6 h-6", isAllCompleted && "text-tertiary")} />
+        <h3 className="text-2xl font-bold text-on-surface mb-6 flex items-center gap-3">
+          <div className="w-10 h-10 clay-icon-container shrink-0 [--clay-icon-bg:var(--color-surface)]">
+            <Check className={clsx("w-6 h-6", isAllCompleted ? "text-tertiary" : "text-primary")} />
+          </div>
           Checklist Hari Ini
         </h3>
         
-        <ul className="space-y-3 ml-6 mb-4">
+        <ul className="space-y-4 mb-6">
           {todayAgendas.length === 0 ? (
-            <li className="text-center p-4 text-on-surface-variant text-sm font-medium">Kosong nih bun, ayo tambah agenda!</li>
+            <li className="text-center p-6 text-on-surface-variant text-sm font-medium clay-card [--clay-card-bg:rgba(255,255,255,0.3)]">Kosong nih bun, ayo tambah agenda!</li>
           ) : (
             todayAgendas.map((agenda) => {
               const isCompleted = agenda.IsCompleted === "TRUE" || agenda.IsCompleted === true;
@@ -101,47 +99,46 @@ export default function HomeChecklist({ initialAgendas }: { initialAgendas: any[
                 <li 
                   key={agenda.ID} 
                   onClick={() => handleToggleAgenda(agenda.ID)}
-                  className="flex flex-col gap-1 bg-surface-container-lowest p-3 rounded-lg border border-surface-variant/50 hover:bg-surface transition-colors cursor-pointer group"
+                  className="flex items-center gap-4 clay-card p-4 group cursor-pointer active:scale-95 transition-all [--clay-card-bg:var(--color-surface)] border-white/40"
                 >
-                  <div className="flex items-center gap-3">
-                    <div className={clsx(
-                      "w-6 h-6 rounded border-2 flex items-center justify-center transition-all shrink-0",
-                      isCompleted ? "border-primary bg-primary text-on-primary" : "border-primary-container bg-primary-container/20 group-hover:border-primary"
-                    )}>
-                      {isToggling === agenda.ID ? (
-                        <Loader2 className={clsx("w-4 h-4 animate-spin", isCompleted ? "text-on-primary" : "text-primary")} />
-                      ) : isCompleted ? (
-                        <Check className="w-4 h-4" strokeWidth={3} />
-                      ) : null}
-                    </div>
-                    <span className={clsx("text-lg font-medium transition-all duration-300", isCompleted ? "text-outline line-through opacity-70" : "text-on-surface")}>
-                      {agenda.Title}
-                    </span>
+                  <div className={clsx(
+                    "w-10 h-10 clay-button flex items-center justify-center transition-all shrink-0",
+                    isCompleted ? "[--clay-btn-bg:var(--color-primary)]" : "[--clay-btn-bg:var(--color-surface-container-high)]"
+                  )}>
+                    {isToggling === agenda.ID ? (
+                      <Loader2 className={clsx("w-5 h-5 animate-spin", isCompleted ? "text-on-primary" : "text-primary")} />
+                    ) : isCompleted ? (
+                      <Check className="w-5 h-5 text-white" strokeWidth={4} />
+                    ) : null}
                   </div>
+                  <span className={clsx("text-lg font-bold transition-all duration-300", isCompleted ? "text-outline/50 line-through" : "text-on-surface")}>
+                    {agenda.Title}
+                  </span>
                 </li>
               );
             })
           )}
         </ul>
         
-        <Link href="/planner/new" className="mt-4 ml-6 text-sm font-bold text-primary flex items-center gap-1 hover:underline w-fit">
+        <Link href="/planner/new" className="clay-button bg-primary text-white text-sm font-bold px-6 py-3 inline-flex items-center gap-2 w-full justify-center">
           <Plus className="w-4 h-4" /> Tambah Agenda
         </Link>
       </section>
 
       {/* Catatan Kecil (Sticky Note) for today */}
-      <section className="bg-tertiary-fixed rounded-sm p-5 shadow-[4px_4px_0_rgba(129,81,91,0.1)] relative transform rotate-1 mt-4 mb-8 w-3/4 mx-auto md:w-full md:mx-0">
-        <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-24 h-5 washi-tape-purple -rotate-3 z-10"></div>
-        <h3 className="text-lg text-on-tertiary-fixed-variant mb-3 font-bold">Catatan Kecil ✨</h3>
-        <div className="space-y-3">
+      <section className="clay-card p-6 bg-clay-yellow border-white/40 transform rotate-1 mt-4 mb-8 w-full [--clay-card-bg:var(--color-tertiary-container)]">
+        <h3 className="text-lg text-on-tertiary-container mb-4 font-bold flex items-center gap-2">
+           <span className="text-2xl">✨</span> Catatan Kecil
+        </h3>
+        <div className="space-y-4">
           {todayAgendas.filter(a => a.Notes).length > 0 ? (
             todayAgendas.filter(a => a.Notes).map(agenda => (
-              <div key={`note-${agenda.ID}`} className="text-on-surface-variant leading-relaxed pb-3 border-b border-tertiary/20 last:border-0 last:pb-0">
-                <p className="text-lg whitespace-pre-wrap">{agenda.Notes}</p>
+              <div key={`note-${agenda.ID}`} className="text-on-tertiary-container/80 leading-relaxed pb-4 border-b border-tertiary/20 last:border-0 last:pb-0">
+                <p className="text-lg font-medium italic whitespace-pre-wrap">&quot;{agenda.Notes}&quot;</p>
               </div>
             ))
           ) : (
-            <p className="text-lg text-on-surface-variant leading-relaxed">
+            <p className="text-lg text-on-tertiary-container/70 leading-relaxed font-medium">
               Tidak ada catatan tambahan untuk hari ini. Kamu hebat, Bun! ❤️
             </p>
           )}

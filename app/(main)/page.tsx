@@ -82,35 +82,35 @@ export default function HomePage() {
       <GreetingHeader />
 
       {/* Financial Summary Bento Grid */}
-      <section className="grid grid-cols-1 md:grid-cols-2 gap-[16px]">
+      <section className="grid grid-cols-1 md:grid-cols-2 gap-[24px]">
         {/* Saldo Card */}
-        <div className="bg-primary-container rounded-xl p-[24px] relative overflow-hidden soft-shadow-primary sticker-shadow">
-          <div className="absolute -right-4 -bottom-4 opacity-20 text-on-primary-container">
+        <div className="clay-card p-[24px] relative overflow-hidden [--clay-card-bg:var(--color-primary-container)]">
+          <div className="absolute -right-4 -bottom-4 opacity-10 text-on-primary-container">
             <Wallet className="w-24 h-24" />
           </div>
           <div className="relative z-10">
-            <div className="flex items-center gap-2 mb-2 text-on-primary-container">
+            <div className="flex items-center gap-2 mb-2 text-on-primary-container/80">
               <Wallet className="w-5 h-5" />
-              <h3 className="text-sm font-bold uppercase tracking-widest">Sisa Saldo</h3>
+              <h3 className="text-xs font-bold uppercase tracking-widest">Sisa Saldo</h3>
             </div>
-            <p className="text-3xl font-bold text-on-primary-fixed mb-4">{formatRupiah(sisaSaldo)}</p>
-            <Link href="/money/new" className="bg-primary-container text-on-primary-container text-sm font-bold px-4 py-2 rounded-full inline-flex items-center gap-2 shadow-[inset_0_2px_4px_rgba(255,255,255,0.3),_0_4px_0_#81515b] active:translate-y-[2px] active:shadow-[inset_0_2px_4px_rgba(255,255,255,0.3),_0_2px_0_#81515b] transition-all">
+            <p className="text-3xl font-bold text-on-primary-container mb-4">{formatRupiah(sisaSaldo)}</p>
+            <Link href="/money/new" className="clay-button bg-white text-primary text-sm font-bold px-6 py-3 inline-flex items-center gap-2 [--clay-btn-bg:#ffffff] [--clay-btn-highlight:rgba(255,255,255,1)]">
               <Plus className="w-4 h-4" /> Tambah Transaksi
             </Link>
           </div>
         </div>
 
         {/* Pengeluaran Card */}
-        <div className="bg-secondary-container rounded-xl p-[24px] relative overflow-hidden soft-shadow-primary sticker-shadow">
-          <div className="absolute -right-4 -bottom-4 opacity-20 text-on-secondary-container">
+        <div className="clay-card p-[24px] relative overflow-hidden [--clay-card-bg:var(--color-secondary-container)]">
+          <div className="absolute -right-4 -bottom-4 opacity-10 text-on-secondary-container">
             <CreditCard className="w-24 h-24" />
           </div>
           <div className="relative z-10">
-            <div className="flex items-center gap-2 mb-2 text-on-secondary-container">
+            <div className="flex items-center gap-2 mb-2 text-on-secondary-container/80">
               <CreditCard className="w-5 h-5" />
-              <h3 className="text-sm font-bold uppercase tracking-widest">Pengeluaran (Bulan Ini)</h3>
+              <h3 className="text-xs font-bold uppercase tracking-widest">Pengeluaran (Bulan Ini)</h3>
             </div>
-            <p className="text-3xl font-bold text-on-secondary-fixed mb-4">{formatRupiah(currentMonthExpense)}</p>
+            <p className="text-3xl font-bold text-on-secondary-container mb-4">{formatRupiah(currentMonthExpense)}</p>
           </div>
         </div>
       </section>

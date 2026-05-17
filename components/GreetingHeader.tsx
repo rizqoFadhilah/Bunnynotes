@@ -50,18 +50,19 @@ export default function GreetingHeader() {
   const randomGreeting = greetings[dayOfYear % greetings.length];
 
   return (
-    <section className="relative bg-surface-container-lowest rounded-xl p-[24px] soft-shadow-primary sticker-shadow transform rotate-1">
-      <div className="absolute -top-3 left-6 w-16 h-6 washi-tape-pink transform -rotate-2"></div>
+    <section className="relative clay-card p-[24px] [--clay-card-bg:var(--color-surface)] border-white/60">
       <div className="flex items-start gap-4">
-        <div className="w-16 h-16 rounded-full bg-primary-container flex items-center justify-center flex-shrink-0 border-2 border-white sticker-shadow transform -rotate-6">
-          <Rabbit className="w-10 h-10 text-primary-fixed" strokeWidth={1.5} />
+        <div className="w-16 h-16 clay-icon-container flex-shrink-0 [--clay-icon-bg:var(--color-primary-container)]">
+          <Rabbit className="w-10 h-10 text-on-primary-container" strokeWidth={1.5} />
         </div>
         <div>
-          <h2 className="text-2xl font-bold text-primary mb-1">{randomGreeting.title}</h2>
-          <p className="text-sm text-on-surface-variant font-medium">{randomGreeting.message}</p>
-          <p className="text-xs font-semibold text-outline mt-2 opacity-70">
-            {today.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
-          </p>
+          <h2 className="text-xl font-bold text-on-surface mb-1">{randomGreeting.title}</h2>
+          <p className="text-sm text-on-surface-variant font-medium leading-relaxed">{randomGreeting.message}</p>
+          <div className="mt-3 flex items-center gap-2">
+            <span className="text-[10px] uppercase tracking-widest font-bold text-primary/60 bg-primary-container/20 px-2 py-1 rounded-lg">
+              {today.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+            </span>
+          </div>
         </div>
       </div>
     </section>

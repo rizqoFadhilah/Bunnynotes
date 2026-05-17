@@ -132,22 +132,20 @@ export default function BudgetPage() {
         </div>
 
         {/* Summary Polaroid Card */}
-        <section className="bg-surface-container-lowest p-[24px] rounded-xl ring-4 ring-white shadow-[0_8px_16px_rgba(129,81,91,0.06)] relative mt-4">
-          <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-20 h-6 bg-secondary-fixed-dim/40 backdrop-blur-sm -rotate-2 border-x-2 border-secondary-fixed-dim/50 shadow-sm z-10 washi-tape-purple"></div>
-          
+        <section className="clay-card p-[24px] border-white/60 relative mt-4 [--clay-card-bg:var(--color-surface)]">
           <div className="text-center space-y-2 mt-2">
-            <p className="text-sm font-bold text-on-surface-variant uppercase tracking-widest">Sisa Budget Bulan Ini</p>
-            <h2 className={clsx("text-4xl font-bold", remainingBudget < 0 ? "text-error" : "text-primary")}>
+            <p className="text-xs font-bold text-primary/60 uppercase tracking-widest">Sisa Budget Bulan Ini</p>
+            <h2 className={clsx("text-4xl font-bold tracking-tight", remainingBudget < 0 ? "text-error" : "text-primary")}>
               {formatRupiah(remainingBudget)}
             </h2>
             <div className={clsx(
-              "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-bold mt-2",
-              remainingBudget < 0 ? "bg-error-container text-on-error-container" : "bg-tertiary-container text-on-tertiary-container"
+              "inline-flex items-center gap-1.5 px-4 py-2 clay-button mt-4 border-white/20",
+              remainingBudget < 0 ? "[--clay-btn-bg:var(--color-secondary-container)] text-on-secondary-container" : "[--clay-btn-bg:var(--color-tertiary-container)] text-on-tertiary-container"
             )}>
-              {remainingBudget < 0 ? <TriangleAlert className="w-4 h-4" /> : <Smile className="w-4 h-4" />}
-              <span>{remainingBudget < 0 ? "Overbudget nih, Bunda!" : "Masih aman, Bunda!"}</span>
+              {remainingBudget < 0 ? <TriangleAlert className="w-5 h-5" /> : <Smile className="w-5 h-5" />}
+              <span className="font-bold">{remainingBudget < 0 ? "Overbudget nih, Bunda!" : "Masih aman, Bunda!"}</span>
             </div>
-            <p className="text-sm text-on-surface-variant mt-2 font-medium">Total Budget Set: {formatRupiah(totalBudget)}</p>
+            <p className="text-sm font-bold text-on-surface-variant opacity-60 mt-4 underline decoration-dashed underline-offset-4 decoration-primary/20">Total Budget Set: {formatRupiah(totalBudget)}</p>
           </div>
         </section>
 
@@ -159,9 +157,9 @@ export default function BudgetPage() {
           </div>
 
           {activeCategories.length === 0 ? (
-            <div className="text-center p-8 bg-surface-container-lowest rounded-xl ring-2 ring-white shadow-sm mt-4">
-              <p className="text-on-surface-variant mb-2">Belum ada aktivitas bulan ini.</p>
-              <p className="text-sm">Catat pemasukan atau pengeluaran pertamamu!</p>
+            <div className="text-center p-12 clay-card border-white/40 [--clay-card-bg:rgba(255,255,255,0.3)] mt-4">
+              <p className="text-on-surface-variant font-bold mb-2">Belum ada aktivitas bulan ini.</p>
+              <p className="text-sm font-medium opacity-60">Catat pemasukan atau pengeluaran pertamamu!</p>
             </div>
           ) : (
             activeCategories.map((catKey: string) => {
@@ -170,60 +168,49 @@ export default function BudgetPage() {
               const nominal = budgetByCategory[catKey] || 0;
               const expense = expenseByCategory[catKey] || 0;
               
-              const percentUsed = nominal > 0 ? (expense / nominal) * 100 : (expense > 0 ? 100 : 0);
               const percentRemaining = nominal > 0 ? Math.max(0, ((nominal - expense) / nominal) * 100) : 0;
-              const isWarning = percentUsed >= 85 && percentUsed < 100;
-              const isOver = percentUsed >= 100 && expense > nominal;
+              const isWarning = (100 - percentRemaining) >= 85 && (100 - percentRemaining) < 100;
+              const isOver = (100 - percentRemaining) >= 100 && expense > nominal;
 
               return (
                 <div key={catKey} className={clsx(
-                  "bg-surface-container-lowest p-[16px] rounded-lg shadow-[0_4px_10px_rgba(129,81,91,0.04)] ring-2 relative group",
-                  isOver ? "ring-error-container/50" : "ring-white/50"
+                  "clay-card p-[20px] transition-all [--clay-card-bg:var(--color-surface)] border-white/60",
+                  isOver && "ring-4 ring-error/20"
                 )}>
                   <DeleteBudgetButton budgetIds={budgetIdsByCategory[catKey] || []} />
-                  {isWarning && !isOver && (
-                    <div className="absolute -right-2 -top-4 bg-white text-error text-[10px] font-bold px-2 py-1 rounded-lg rotate-[15deg] ring-2 ring-error shadow-[2px_2px_0_0_#ba1a1a] z-10 flex items-center gap-1">
-                      Hampir Habis!
-                    </div>
-                  )}
-                  {isOver && (
-                    <div className="absolute -right-2 -top-4 bg-error text-white text-[10px] font-bold px-2 py-1 rounded-lg rotate-[15deg] ring-2 ring-error shadow-[2px_2px_0_0_#ba1a1a] z-10 flex items-center gap-1">
-                      Overbudget!
-                    </div>
-                  )}
                   
-                  <div className="flex justify-between items-center mb-3">
-                    <div className="flex items-center gap-3 text-on-surface">
+                  <div className="flex justify-between items-center mb-6">
+                    <div className="flex items-center gap-3">
                       <div className={clsx(
-                        "w-10 h-10 rounded-full flex items-center justify-center shadow-sm",
-                        catDetails.bgClass || "bg-primary-container"
+                        "w-12 h-12 clay-icon-container shrink-0 [--clay-icon-bg:var(--color-primary-container)] border-white/40",
+                        catDetails.bgClass
                       )}>
-                        <CatIcon className={clsx("w-5 h-5", catDetails.colorClass || "text-on-primary-container")} />
+                        <CatIcon className={clsx("w-6 h-6", catDetails.colorClass || "text-on-primary-container")} />
                       </div>
-                      <span className="text-sm font-bold">{catDetails.Nama}</span>
+                      <span className="text-base font-bold text-on-surface tracking-tight">{catDetails.Nama}</span>
                     </div>
                     <div className={clsx(
-                      "px-3 py-1 rounded-full text-[12px] font-bold shadow-sm border border-white",
-                      isOver ? "bg-error text-white" : isWarning ? "bg-error-container text-on-error-container" : "bg-tertiary-fixed-dim text-on-tertiary-fixed-variant"
+                      "px-4 py-1 clay-button text-[12px] font-bold border-white/40",
+                      isOver ? "[--clay-btn-bg:var(--color-secondary)] text-white" : isWarning ? "[--clay-btn-bg:var(--color-secondary-container)] text-on-secondary-container" : "[--clay-btn-bg:var(--color-tertiary-container)] text-on-tertiary-container"
                     )}>
-                      {Math.ceil(percentRemaining)}%
+                      {Math.ceil(percentRemaining)}% Sisa
                     </div>
                   </div>
                   <div className={clsx(
-                    "h-6 w-full rounded-full overflow-hidden shadow-inner relative ring-1",
-                    isOver ? "bg-error-container ring-error/20" : "bg-surface-variant ring-transparent"
+                    "h-8 w-full clay-card rounded-full overflow-hidden relative border-0 p-0",
+                    isOver ? "[--clay-card-bg:var(--color-surface-container-high)]" : "[--clay-card-bg:var(--color-surface-container-low)]"
                   )}>
                     <div 
                       className={clsx(
-                        "absolute top-0 left-0 h-full rounded-full shadow-[inset_0_3px_4px_rgba(255,255,255,0.3)] transition-all duration-1000 ease-out",
-                        isOver ? "bg-error" : isWarning ? "bg-error" : "bg-tertiary"
+                        "absolute top-0 left-0 h-full transition-all duration-1000 ease-out clay-card rounded-full border-0",
+                        isOver ? "[--clay-card-bg:var(--color-secondary)]" : isWarning ? "[--clay-card-bg:var(--color-secondary)]" : "[--clay-card-bg:var(--color-primary)]"
                       )}
-                      style={{ width: `${percentRemaining}%` }}
+                      style={{ width: `${percentRemaining}%`, borderRadius: '100px' } as any}
                     ></div>
                   </div>
-                  <div className="flex justify-between text-[12px] text-on-surface-variant mt-2">
-                    <span>Terpakai {formatRupiah(expense)}</span>
-                    <span>Total {formatRupiah(nominal)}</span>
+                  <div className="flex justify-between text-[11px] font-bold text-primary/40 uppercase tracking-widest mt-4">
+                    <span>🔥 Terpakai {formatRupiah(expense)}</span>
+                    <span>🎯 Target {formatRupiah(nominal)}</span>
                   </div>
                 </div>
               );
@@ -233,10 +220,10 @@ export default function BudgetPage() {
         </section>
 
         {/* Floating Action Button */}
-        <Link href="/budget/new" className="fixed bottom-28 right-[20px] lg:right-[calc(50vw-240px)] z-40 bg-primary-container text-on-primary-container px-6 py-4 rounded-full shadow-[6px_6px_0_0_#81515b] ring-4 ring-white hover:scale-105 active:translate-x-1 active:translate-y-1 active:shadow-none transition-all duration-150 flex items-center gap-2">
-          <Plus className="w-6 h-6 font-bold" strokeWidth={3} />
+        <Link href="/budget/new" className="fixed bottom-28 right-[20px] lg:right-[calc(50vw-240px)] z-40 clay-button text-white px-6 py-4 transition-all duration-150 flex items-center gap-2 [--clay-btn-bg:var(--color-primary)]">
+          <Plus className="w-6 h-6" strokeWidth={3} />
           <span className="text-lg font-bold tracking-tight">Set Budget</span>
-          <span className="text-xl ml-1">🎯</span>
+          <span className="text-xl ml-1 leading-none">🎯</span>
         </Link>
       </div>
     </>

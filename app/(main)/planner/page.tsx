@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Pin, Check, Star, Sparkles, Plus, MoreVertical, Loader2, Download } from 'lucide-react';
+import { Pin, Check, Star, Sparkles, Plus, MoreVertical, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import clsx from 'clsx';
 import { getAgendas, completeAgenda } from '@/lib/api';
@@ -9,7 +9,6 @@ import { getAgendas, completeAgenda } from '@/lib/api';
 export default function PlannerPage() {
   const [agendas, setAgendas] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isExporting, setIsExporting] = useState(false);
   
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -41,41 +40,6 @@ export default function PlannerPage() {
       console.error(e);
     } finally {
       setIsToggling(null);
-    }
-  };
-
-  const exportAgendasToCSV = () => {
-    setIsExporting(true);
-    try {
-      const headers = ['Judul', 'Tanggal', 'Status', 'Catatan'];
-      const rows = agendas.map(a => {
-        const isCompleted = a.IsCompleted === "TRUE" || a.IsCompleted === true;
-        return [
-          `"${(a.Title || '').replace(/"/g, '""')}"`,
-          a.Date || a.Timestamp || '',
-          isCompleted ? 'Selesai' : 'Belum Selesai',
-          `"${(a.Notes || '').replace(/"/g, '""')}"`
-        ];
-      });
-
-      const csvContent = [
-        headers.join(','),
-        ...rows.map(row => row.join(','))
-      ].join('\n');
-
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.setAttribute('href', url);
-      link.setAttribute('download', `backup-planner-${new Date().toISOString().split('T')[0]}.csv`);
-      link.style.visibility = 'hidden';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    } catch (error) {
-      console.error('Export failed:', error);
-    } finally {
-      setIsExporting(false);
     }
   };
 
@@ -133,18 +97,6 @@ export default function PlannerPage() {
   return (
     <>
       <div className="relative">
-        {/* Backup Button */}
-        <div className="flex justify-end mb-4 pr-2">
-          <button 
-            onClick={exportAgendasToCSV}
-            disabled={isExporting || agendas.length === 0}
-            className="flex items-center bg-tertiary-container text-on-tertiary-container rounded-lg px-4 py-2 border-2 border-white sticker-shadow hover:scale-105 transition-transform disabled:opacity-50 disabled:scale-100"
-          >
-            {isExporting ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Download className="w-4 h-4 mr-2" />}
-            <span className="text-sm font-bold">Backup Planner CSV</span>
-          </button>
-        </div>
-
         {/* Background Decorations */}
         <div className="absolute -top-10 -left-10 text-primary-container opacity-50 rotate-12 pointer-events-none">
           <Star className="w-16 h-16 fill-current" />
@@ -154,41 +106,36 @@ export default function PlannerPage() {
         </div>
 
         {/* Date Header */}
-        <div className="relative bg-surface-container-lowest rounded-lg p-6 mb-8 border-4 border-white shadow-[0_4px_15px_rgba(129,81,91,0.05)] transform -rotate-1">
-          <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-32 h-6 washi-tape rotate-2 z-10"></div>
+        <div className="relative clay-card p-6 mb-8 border-white/60 [--clay-card-bg:var(--color-surface)]">
           <div className="flex justify-between items-center px-4">
             <button 
               onClick={() => setCurrentDate(new Date(year, month - 1, 1))}
-              className="text-primary font-bold px-2 py-1 bg-surface rounded-lg hover:bg-surface-variant transition-colors"
+              className="w-10 h-10 clay-icon-container text-primary hover:bg-surface-variant transition-colors"
             >
-              &lt;
+              <ChevronLeft className="w-5 h-5" />
             </button>
-            <h2 className="text-2xl font-bold text-primary text-center mb-1">{monthName}</h2>
+            <h2 className="text-2xl font-bold text-on-surface text-center mb-1 tracking-tight">{monthName}</h2>
             <button 
               onClick={() => setCurrentDate(new Date(year, month + 1, 1))}
-              className="text-primary font-bold px-2 py-1 bg-surface rounded-lg hover:bg-surface-variant transition-colors"
+              className="w-10 h-10 clay-icon-container text-primary hover:bg-surface-variant transition-colors"
             >
-              &gt;
+              <ChevronRight className="w-5 h-5" />
             </button>
           </div>
-          <p className="text-center text-on-surface-variant text-sm font-bold">Fokus hari ini: Sabar &amp; Bernapas</p>
+          <p className="text-center text-primary/60 text-xs font-bold uppercase tracking-widest mt-4">Fokus hari ini: Sabar &amp; Bernapas</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-12 gap-4 mb-8">
           {/* Calendar Section */}
-          <div className="md:col-span-12 lg:col-span-7 bg-surface-container-lowest rounded-lg p-[24px] border-4 border-white shadow-[0_6px_20px_rgba(129,81,91,0.08)] relative z-10">
-            <div className="absolute -top-4 -left-4 w-12 h-12 text-tertiary sticker-border rounded-full bg-white flex items-center justify-center rotate-[-10deg]">
-              <Pin className="w-6 h-6 fill-current" />
-            </div>
-            
-            <div className="grid grid-cols-7 gap-1 md:gap-2 mb-2 text-center text-sm font-bold text-on-surface-variant">
-              <div>S</div><div>S</div><div>R</div><div>K</div><div>J</div><div>S</div><div>M</div>
+          <div className="md:col-span-12 lg:col-span-7 clay-card p-[24px] border-white/60 relative z-10 [--clay-card-bg:var(--color-surface)]">
+            <div className="grid grid-cols-7 gap-1 md:gap-2 mb-4 text-center text-[10px] font-bold text-primary/40 uppercase tracking-widest">
+              <div>Sen</div><div>Sel</div><div>Rab</div><div>Kam</div><div>Jum</div><div>Sab</div><div>Min</div>
             </div>
             <div className="grid grid-cols-7 gap-1 md:gap-2">
               {days.map((day, idx) => {
                 if (day === null) {
                   return (
-                    <div key={`blank-${idx}`} className="aspect-square p-1 rounded-lg bg-surface-variant/30 border border-dashed border-outline-variant/30"></div>
+                    <div key={`blank-${idx}`} className="aspect-square p-1 rounded-2xl bg-surface-variant/20 border border-dashed border-outline-variant/20"></div>
                   )
                 }
 
@@ -201,20 +148,16 @@ export default function PlannerPage() {
                     key={day} 
                     onClick={() => setSelectedDate(new Date(year, month, day))}
                     className={clsx(
-                      "aspect-square p-1 rounded-lg flex flex-col items-center justify-center border transition-colors cursor-pointer relative",
-                      isSelected(day) ? "bg-primary-container text-on-primary-container border-2 border-white shadow-sm ring-1 ring-primary/30 transform scale-110 z-10" : "bg-surface border-surface-variant hover:bg-primary-fixed/20",
-                      isToday(day) && !isSelected(day) ? "ring-1 ring-primary ring-offset-1" : ""
+                      "aspect-square p-1 transition-all cursor-pointer relative",
+                      isSelected(day) ? "clay-button z-20 [--clay-btn-bg:var(--color-primary)] ring-2 ring-white/50" : "clay-card [--clay-card-bg:var(--color-surface)] border-white/40 grayscale-[0.5] opacity-80 hover:grayscale-0 hover:opacity-100",
+                      isToday(day) && !isSelected(day) ? "ring-2 ring-clay-pink ring-offset-2" : ""
                     )}
+                    style={{ borderRadius: '16px' }}
                   >
-                    <span className={clsx("text-base", isSelected(day) && "font-bold", hasAgendas && "mb-1")}>{day}</span>
+                    <span className={clsx("text-base flex items-center justify-center h-full", isSelected(day) ? "font-bold text-white" : "text-on-surface")}>{day}</span>
                     {hasAgendas && (
-                      <div className="flex gap-0.5 mt-0.5">
-                        {dAgendas.slice(0, 3).map((a, i) => (
-                           <div key={i} className={clsx(
-                             "w-1.5 h-1.5 rounded-full",
-                             isAllDone ? "bg-tertiary" : "bg-primary"
-                           )}></div>
-                        ))}
+                      <div className="absolute bottom-1.5 left-1/2 -translate-x-1/2 flex gap-0.5">
+                        <div className={clsx("w-1.5 h-1.5 rounded-full", isSelected(day) ? "bg-white/80" : isAllDone ? "bg-tertiary" : "bg-primary")}></div>
                       </div>
                     )}
                   </div>
@@ -227,24 +170,23 @@ export default function PlannerPage() {
           <div className="md:col-span-12 lg:col-span-5 flex flex-col gap-4 mt-4 lg:mt-0">
             {/* Agenda Hari Ini */}
            <section className={clsx(
-             "bg-surface-container-low rounded-xl p-[24px] relative sticker-shadow border mb-8 transition-colors duration-500",
-             isAllCompleted ? "border-tertiary shadow-[0_4px_15px_rgba(50,77,52,0.1)]" : "border-surface-variant soft-shadow-primary"
+             "clay-card p-[24px] relative border-white/40 mb-8 transition-all duration-500",
+             isAllCompleted ? "[--clay-card-bg:var(--color-tertiary-container)]" : "[--clay-card-bg:var(--color-surface-container-low)]"
            )}>
-              <div className="absolute top-4 -left-2 w-8 h-16 bg-surface-container rounded-r-lg border border-surface-variant shadow-sm flex items-center justify-center">
-                <MoreVertical className="w-4 h-4 text-outline" />
-              </div>
-              <h3 className="text-2xl font-bold text-primary mb-4 ml-6 flex items-center gap-2">
-                <Check className={clsx("w-6 h-6", isAllCompleted && "text-tertiary")} />
-                Checklist {selectedDate.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
+              <h3 className="text-2xl font-bold text-on-surface mb-6 flex items-center gap-3">
+                <div className="w-10 h-10 clay-icon-container shrink-0 [--clay-icon-bg:var(--color-surface)]">
+                  <Check className={clsx("w-6 h-6", isAllCompleted ? "text-tertiary" : "text-primary")} />
+                </div>
+                {selectedDate.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
               </h3>
               
-              <ul className="space-y-3 ml-6">
+              <ul className="space-y-4 mb-6">
                 {loading ? (
                    <li className="flex justify-center p-4">
                      <Loader2 className="w-6 h-6 animate-spin text-primary" />
                    </li>
                 ) : selectedAgendas.length === 0 ? (
-                  <li className="text-center p-4 text-on-surface-variant text-sm font-medium">Kosong nih bun, ayo tambah agenda!</li>
+                  <li className="text-center p-6 text-on-surface-variant text-sm font-medium clay-card [--clay-card-bg:rgba(255,255,255,0.3)]">Kosong nih bun, ayo tambah agenda!</li>
                 ) : (
                   selectedAgendas.map((agenda) => {
                     const isCompleted = agenda.IsCompleted === "TRUE" || agenda.IsCompleted === true;
@@ -252,52 +194,51 @@ export default function PlannerPage() {
                       <li 
                         key={agenda.ID} 
                         onClick={() => handleToggleAgenda(agenda.ID)}
-                        className="flex items-center gap-3 bg-surface-container-lowest p-3 rounded-lg border border-surface-variant/50 hover:bg-surface transition-colors cursor-pointer group"
+                        className="flex items-center gap-4 clay-card p-3 group cursor-pointer active:scale-95 transition-all [--clay-card-bg:var(--color-surface)] border-white/40"
                       >
                         <div className={clsx(
-                          "w-6 h-6 rounded border-2 flex items-center justify-center transition-all shrink-0",
-                          isCompleted ? "border-primary bg-primary text-on-primary" : "border-primary-container bg-primary-container/20 group-hover:border-primary"
+                          "w-10 h-10 clay-button flex items-center justify-center transition-all shrink-0",
+                          isCompleted ? "[--clay-btn-bg:var(--color-primary)]" : "[--clay-btn-bg:var(--color-surface-container-high)]"
                         )}>
                           {isToggling === agenda.ID ? (
                              <Loader2 className={clsx("w-4 h-4 animate-spin", isCompleted ? "text-on-primary" : "text-primary")} />
                           ) : isCompleted ? (
-                             <Check className="w-4 h-4" strokeWidth={3} />
+                             <Check className="w-4 h-4 text-white" strokeWidth={4} />
                           ) : null}
                         </div>
-                        <div className="flex flex-col justify-center">
-                           <span className={clsx("text-lg font-medium transition-all duration-300", isCompleted ? "text-outline line-through opacity-70" : "text-on-surface")}>
-                             {agenda.Title}
-                           </span>
-                        </div>
+                        <span className={clsx("text-lg font-bold transition-all duration-300", isCompleted ? "text-outline/50 line-through" : "text-on-surface")}>
+                          {agenda.Title}
+                        </span>
                       </li>
                     );
                   })
                 )}
               </ul>
               
-              <Link href={`/planner/new?date=${selectedDate.toISOString()}`} className="mt-4 ml-6 text-sm font-bold text-primary flex items-center gap-1 hover:underline">
+              <Link href={`/planner/new?date=${selectedDate.toISOString()}`} className="clay-button bg-primary text-white text-sm font-bold px-6 py-3 inline-flex items-center gap-2 w-full justify-center">
                 <Plus className="w-4 h-4" /> Tambah Agenda
               </Link>
             </section>
 
             {/* Catatan Kecil (Sticky Note) */}
-            <div className="bg-tertiary-fixed rounded-sm p-5 shadow-[4px_4px_0_rgba(129,81,91,0.1)] relative transform -rotate-2 mt-4">
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-24 h-5 washi-tape-purple -rotate-3 z-10"></div>
-              <h3 className="text-lg text-on-tertiary-fixed-variant mb-3 font-bold">Catatan Kecil ✨</h3>
-              <div className="space-y-3">
+             <section className="clay-card p-6 bg-clay-yellow border-white/40 transform rotate-1 mt-4 mb-8 w-full [--clay-card-bg:var(--color-tertiary-container)]">
+              <h3 className="text-lg text-on-tertiary-container mb-4 font-bold flex items-center gap-2">
+                 <span className="text-2xl">✨</span> Catatan Kecil
+              </h3>
+              <div className="space-y-4">
                 {selectedAgendas.filter(a => a.Notes).length > 0 ? (
                   selectedAgendas.filter(a => a.Notes).map(agenda => (
-                    <div key={`note-${agenda.ID}`} className="text-on-surface-variant leading-relaxed pb-3 border-b border-tertiary/20 last:border-0 last:pb-0">
-                      <p className="text-lg whitespace-pre-wrap">{agenda.Notes}</p>
+                    <div key={`note-${agenda.ID}`} className="text-on-tertiary-container/80 leading-relaxed pb-4 border-b border-tertiary/20 last:border-0 last:pb-0">
+                      <p className="text-lg font-medium italic whitespace-pre-wrap">&quot;{agenda.Notes}&quot;</p>
                     </div>
                   ))
                 ) : (
-                  <p className="text-lg text-on-surface-variant leading-relaxed">
+                  <p className="text-lg text-on-tertiary-container/70 leading-relaxed font-medium">
                     Tidak ada catatan tambahan untuk hari ini. Kamu hebat, Bun! ❤️
                   </p>
                 )}
               </div>
-            </div>
+            </section>
           </div>
         </div>
 
