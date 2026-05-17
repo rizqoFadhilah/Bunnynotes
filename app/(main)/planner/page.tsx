@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Pin, Check, Star, Sparkles, Plus, MoreVertical, Loader2 } from 'lucide-react';
+import { Pin, Check, Star, Sparkles, Plus, MoreVertical, Loader2, Download } from 'lucide-react';
 import Link from 'next/link';
 import clsx from 'clsx';
 import { getAgendas, completeAgenda } from '@/lib/api';
@@ -9,6 +9,7 @@ import { getAgendas, completeAgenda } from '@/lib/api';
 export default function PlannerPage() {
   const [agendas, setAgendas] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isExporting, setIsExporting] = useState(false);
   
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -40,6 +41,41 @@ export default function PlannerPage() {
       console.error(e);
     } finally {
       setIsToggling(null);
+    }
+  };
+
+  const exportAgendasToCSV = () => {
+    setIsExporting(true);
+    try {
+      const headers = ['Judul', 'Tanggal', 'Status', 'Catatan'];
+      const rows = agendas.map(a => {
+        const isCompleted = a.IsCompleted === "TRUE" || a.IsCompleted === true;
+        return [
+          `"${(a.Title || '').replace(/"/g, '""')}"`,
+          a.Date || a.Timestamp || '',
+          isCompleted ? 'Selesai' : 'Belum Selesai',
+          `"${(a.Notes || '').replace(/"/g, '""')}"`
+        ];
+      });
+
+      const csvContent = [
+        headers.join(','),
+        ...rows.map(row => row.join(','))
+      ].join('\n');
+
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', `backup-planner-${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error('Export failed:', error);
+    } finally {
+      setIsExporting(false);
     }
   };
 
@@ -97,6 +133,18 @@ export default function PlannerPage() {
   return (
     <>
       <div className="relative">
+        {/* Backup Button */}
+        <div className="flex justify-end mb-4 pr-2">
+          <button 
+            onClick={exportAgendasToCSV}
+            disabled={isExporting || agendas.length === 0}
+            className="flex items-center bg-tertiary-container text-on-tertiary-container rounded-lg px-4 py-2 border-2 border-white sticker-shadow hover:scale-105 transition-transform disabled:opacity-50 disabled:scale-100"
+          >
+            {isExporting ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Download className="w-4 h-4 mr-2" />}
+            <span className="text-sm font-bold">Backup Planner CSV</span>
+          </button>
+        </div>
+
         {/* Background Decorations */}
         <div className="absolute -top-10 -left-10 text-primary-container opacity-50 rotate-12 pointer-events-none">
           <Star className="w-16 h-16 fill-current" />

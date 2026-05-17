@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import clsx from 'clsx';
-import { Pin, HelpCircle, ChevronLeft, ChevronRight, Filter, X, Trash2, Loader2 } from 'lucide-react';
+import { Pin, HelpCircle, ChevronLeft, ChevronRight, Filter, X, Trash2, Loader2, Download } from 'lucide-react';
 import { Utensils, Home, Baby, Sparkles, Car, PiggyBank, ShoppingBag, Briefcase, Heart, Smile } from 'lucide-react';
 import { deleteTransaction } from '@/lib/api';
 import { 
@@ -23,6 +23,7 @@ export default function MoneyDashboard({ transactions, categories }: { transacti
   const router = useRouter();
   const [localTransactions, setLocalTransactions] = useState(transactions);
   const [weekOffset, setWeekOffset] = useState(0); // 0 = current week, -1 = last week, etc.
+  const [isExporting, setIsExporting] = useState(false);
   
   useEffect(() => {
     setLocalTransactions(transactions);
@@ -159,6 +160,42 @@ export default function MoneyDashboard({ transactions, categories }: { transacti
     return `Rp.${value.toLocaleString('id-ID')}`;
   };
 
+  const exportToCSV = () => {
+    setIsExporting(true);
+    try {
+      const headers = ['Tanggal', 'Tipe', 'Kategori', 'Nominal', 'Catatan'];
+      const rows = filteredTransactions.map(t => {
+        const categoryName = categories.find(c => c.ID === t.Kategori || c.Nama === t.Kategori)?.Nama || 'Lainnya';
+        return [
+          t.Tanggal,
+          t.Tipe === 'Income' ? 'Pemasukan' : 'Pengeluaran',
+          categoryName,
+          t.Nominal,
+          `"${(t.Catatan || '').replace(/"/g, '""')}"`
+        ];
+      });
+
+      const csvContent = [
+        headers.join(','),
+        ...rows.map(row => row.join(','))
+      ].join('\n');
+
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', `backup-transaksi-${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error('Export failed:', error);
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   return (
     <div className="flex flex-col gap-8">
       {/* Weekly Spending Chart */}
@@ -275,6 +312,16 @@ export default function MoneyDashboard({ transactions, categories }: { transacti
           <h2 className="text-2xl font-bold text-on-surface pl-2">Daftar Transaksi</h2>
           
           <div className="flex flex-wrap items-center gap-2 px-2 sm:px-0">
+            {/* Backup Button */}
+            <button 
+              onClick={exportToCSV}
+              disabled={isExporting || filteredTransactions.length === 0}
+              className="relative flex items-center bg-tertiary-container text-on-tertiary-container rounded-lg px-3 py-2 border-2 border-white sticker-shadow hover:scale-105 transition-transform disabled:opacity-50 disabled:scale-100"
+            >
+              {isExporting ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Download className="w-4 h-4 mr-2" />}
+              <span className="text-sm font-bold">Backup CSV</span>
+            </button>
+
             <div className="relative flex items-center bg-surface-container rounded-lg px-3 py-2 border-2 border-white sticker-shadow">
               <Filter className="w-4 h-4 text-on-surface-variant mr-2" />
               <select 
