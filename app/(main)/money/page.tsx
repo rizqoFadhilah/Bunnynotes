@@ -47,7 +47,7 @@ export default function MoneyPage() {
       </div>
       
       {/* Floating Action Button */}
-      <Link href="/money/new" className="fixed bottom-28 right-[20px] bg-primary text-on-primary text-sm font-bold px-6 py-4 rounded-full shadow-[0_8px_0_0_rgba(102,58,67,1)] flex items-center gap-2 sticker-border hover:translate-y-1 hover:shadow-[0_4px_0_0_rgba(102,58,67,1)] transition-all z-40 lg:right-[calc(50vw-240px)]">
+      <Link href="/money/new" className="fixed bottom-28 right-[20px] lg:right-[calc(50vw-240px)] z-40 bg-primary-container text-on-primary-container px-6 py-4 rounded-full shadow-[6px_6px_0_0_#81515b] ring-4 ring-white hover:scale-105 active:translate-x-1 active:translate-y-1 active:shadow-none transition-all duration-150 flex items-center gap-2">
         <Plus className="w-5 h-5" />
         Tambah Transaksi
       </Link>

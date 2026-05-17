@@ -94,7 +94,7 @@ export default function HomePage() {
               <h3 className="text-sm font-bold uppercase tracking-widest">Sisa Saldo</h3>
             </div>
             <p className="text-3xl font-bold text-on-primary-fixed mb-4">{formatRupiah(sisaSaldo)}</p>
-            <Link href="/money/new" className="bg-surface-container-lowest text-primary text-sm font-bold px-4 py-2 rounded-full inline-flex items-center gap-2 shadow-[inset_0_2px_4px_rgba(255,255,255,0.8),_0_4px_0_rgba(129,81,91,0.2)] active:translate-y-[2px] active:shadow-[inset_0_2px_4px_rgba(255,255,255,0.8),_0_2px_0_rgba(129,81,91,0.2)] transition-all">
+            <Link href="/money/new" className="bg-primary-container text-on-primary-container text-sm font-bold px-4 py-2 rounded-full inline-flex items-center gap-2 shadow-[inset_0_2px_4px_rgba(255,255,255,0.3),_0_4px_0_#81515b] active:translate-y-[2px] active:shadow-[inset_0_2px_4px_rgba(255,255,255,0.3),_0_2px_0_#81515b] transition-all">
               <Plus className="w-4 h-4" /> Tambah Transaksi
             </Link>
           </div>

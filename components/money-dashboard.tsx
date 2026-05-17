@@ -232,7 +232,25 @@ export default function MoneyDashboard({ transactions, categories }: { transacti
                   paddingAngle={5}
                   dataKey="value"
                   animationDuration={1500}
-                  label={({ value }) => `Rp.${value.toLocaleString('id-ID')}`}
+                  label={({ cx = 0, cy = 0, midAngle = 0, outerRadius = 0, value = 0 }) => {
+                    const RADIAN = Math.PI / 180;
+                    const radius = outerRadius + 20;
+                    const x = cx + radius * Math.cos(-midAngle * RADIAN);
+                    const y = cy + radius * Math.sin(-midAngle * RADIAN);
+                    return (
+                      <text
+                        x={x}
+                        y={y}
+                        fill="#49454f"
+                        textAnchor={x > cx ? 'start' : 'end'}
+                        dominantBaseline="central"
+                        className="text-[10px] font-extrabold"
+                      >
+                        Rp.{Number(value).toLocaleString('id-ID')}
+                      </text>
+                    );
+                  }}
+                  labelLine={{ stroke: '#49454f', strokeWidth: 1 }}
                 >
                   {categoryData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} stroke="rgba(255,255,255,0.5)" />
