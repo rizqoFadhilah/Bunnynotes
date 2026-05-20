@@ -30,7 +30,8 @@ export default function MoneyDashboard({ transactions, categories }: { transacti
   }, [transactions]);
   
   const [filterCategory, setFilterCategory] = useState<string>('All');
-  const [filterDate, setFilterDate] = useState<string>('');
+  const [filterStartDate, setFilterStartDate] = useState<string>('');
+  const [filterEndDate, setFilterEndDate] = useState<string>('');
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
 
@@ -152,8 +153,12 @@ export default function MoneyDashboard({ transactions, categories }: { transacti
       result = result.filter(t => t.Kategori === filterCategory || categories.find(c => c.ID === t.Kategori)?.Nama === filterCategory);
     }
     
-    if (filterDate) {
-      result = result.filter(t => t.Tanggal.startsWith(filterDate));
+    if (filterStartDate) {
+      result = result.filter(t => t.Tanggal >= filterStartDate);
+    }
+
+    if (filterEndDate) {
+      result = result.filter(t => t.Tanggal <= filterEndDate);
     }
     
     return result.sort((a, b) => {
@@ -161,7 +166,7 @@ export default function MoneyDashboard({ transactions, categories }: { transacti
       const dateB = new Date(b.Tanggal + 'T' + (b.Waktu || '00:00:00')).getTime();
       return dateB - dateA;
     });
-  }, [localTransactions, filterCategory, filterDate, categories]);
+  }, [localTransactions, filterCategory, filterStartDate, filterEndDate, categories]);
 
   const handleDelete = async (id: string) => {
     setIsDeleting(id);
@@ -323,15 +328,31 @@ export default function MoneyDashboard({ transactions, categories }: { transacti
               </select>
             </div>
             
-            <div className="relative flex items-center bg-surface-container rounded-lg px-3 py-2 border-2 border-white sticker-shadow">
+            <div className="relative flex items-center bg-surface-container rounded-lg px-3 py-2 border-2 border-white sticker-shadow text-xs font-semibold gap-1">
+              <span className="text-[10px] text-on-surface-variant font-bold">Dari:</span>
               <input 
                 type="date"
-                value={filterDate}
-                onChange={(e) => setFilterDate(e.target.value)}
-                className="bg-transparent text-sm font-medium text-on-surface outline-none"
+                value={filterStartDate}
+                onChange={(e) => setFilterStartDate(e.target.value)}
+                className="bg-transparent text-sm font-medium text-on-surface outline-none max-w-[125px]"
               />
-              {filterDate && (
-                <button onClick={() => setFilterDate('')} className="ml-2 text-on-surface-variant hover:text-error">
+              {filterStartDate && (
+                <button onClick={() => setFilterStartDate('')} className="text-on-surface-variant hover:text-error">
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+
+            <div className="relative flex items-center bg-surface-container rounded-lg px-3 py-2 border-2 border-white sticker-shadow text-xs font-semibold gap-1">
+              <span className="text-[10px] text-on-surface-variant font-bold">Sampai:</span>
+              <input 
+                type="date"
+                value={filterEndDate}
+                onChange={(e) => setFilterEndDate(e.target.value)}
+                className="bg-transparent text-sm font-medium text-on-surface outline-none max-w-[125px]"
+              />
+              {filterEndDate && (
+                <button onClick={() => setFilterEndDate('')} className="text-on-surface-variant hover:text-error">
                   <X className="w-4 h-4" />
                 </button>
               )}

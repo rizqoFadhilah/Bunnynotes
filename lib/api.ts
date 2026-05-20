@@ -186,6 +186,58 @@ export async function completeAgenda(id: string) {
   }
 }
 
+export async function saveDailyNote(dateStr: string, noteText: string) {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Not authenticated');
+
+  const { data: existing, error } = await supabase
+    .from('agendas')
+    .select('*')
+    .eq('user_id', user.id)
+    .eq('Title', 'Catatan Kecil')
+    .eq('Date', dateStr);
+
+  if (error) {
+    console.error('Error finding daily note:', error);
+  }
+
+  if (existing && existing.length > 0) {
+    const id = existing[0].ID || existing[0].id;
+    const { data, error: updateError } = await supabase
+      .from('agendas')
+      .update({ Notes: noteText })
+      .eq('ID', id)
+      .eq('user_id', user.id)
+      .select();
+
+    if (updateError) {
+      const { data: dataFallback, error: errFallback } = await supabase
+        .from('agendas')
+        .update({ Notes: noteText })
+        .eq('id', id)
+        .eq('user_id', user.id)
+        .select();
+      if (errFallback) throw errFallback;
+      return dataFallback;
+    }
+    return data;
+  } else {
+    const { data, error: insertError } = await supabase
+      .from('agendas')
+      .insert([{
+        Title: 'Catatan Kecil',
+        Date: dateStr,
+        Notes: noteText,
+        IsCompleted: true,
+        user_id: user.id
+      }])
+      .select();
+
+    if (insertError) throw insertError;
+    return data;
+  }
+}
+
 export async function getCategories() {
   const { data: { user } } = await supabase.auth.getUser();
   

@@ -4,12 +4,16 @@ import { useState, useEffect } from 'react';
 import { Check, MoreVertical, Plus, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import clsx from 'clsx';
-import { completeAgenda } from '@/lib/api';
+import { completeAgenda, getAgendas, saveDailyNote } from '@/lib/api';
 
 export default function HomeChecklist({ initialAgendas }: { initialAgendas: any[] }) {
   const [isClient, setIsClient] = useState(false);
   const [agendas, setAgendas] = useState<any[]>(initialAgendas);
   const [isToggling, setIsToggling] = useState<string | null>(null);
+
+  const [noteText, setNoteText] = useState('');
+  const [originalNoteText, setOriginalNoteText] = useState('');
+  const [isSavingNote, setIsSavingNote] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
@@ -17,6 +21,28 @@ export default function HomeChecklist({ initialAgendas }: { initialAgendas: any[
 
   const today = new Date();
   const dateString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
+  useEffect(() => {
+    if (!isClient) return;
+    const dailyNoteAgenda = agendas.find(a => a.Title === 'Catatan Kecil' && (a.Date === dateString || (a.Timestamp && a.Timestamp.startsWith(dateString))));
+    const val = dailyNoteAgenda ? (dailyNoteAgenda.Notes || '') : '';
+    setNoteText(val);
+    setOriginalNoteText(val);
+  }, [isClient, agendas, dateString]);
+
+  const handleSaveNote = async () => {
+    if (noteText === originalNoteText) return;
+    setIsSavingNote(true);
+    try {
+      await saveDailyNote(dateString, noteText);
+      const updatedAgendas = await getAgendas();
+      setAgendas(updatedAgendas || []);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsSavingNote(false);
+    }
+  };
 
   // Filter for today
   const todayAgendas = agendas.filter((a) => {
@@ -33,8 +59,9 @@ export default function HomeChecklist({ initialAgendas }: { initialAgendas: any[
     }
   });
 
-  const totalCompleted = todayAgendas.filter(a => a.IsCompleted === "TRUE" || a.IsCompleted === true).length;
-  const isAllCompleted = todayAgendas.length > 0 && totalCompleted === todayAgendas.length;
+  const displayAgendas = todayAgendas.filter(a => a.Title !== 'Catatan Kecil');
+  const totalCompleted = displayAgendas.filter(a => a.IsCompleted === "TRUE" || a.IsCompleted === true).length;
+  const isAllCompleted = displayAgendas.length > 0 && totalCompleted === displayAgendas.length;
 
   const handleToggleAgenda = async (id: string) => {
     setIsToggling(id);
@@ -90,10 +117,10 @@ export default function HomeChecklist({ initialAgendas }: { initialAgendas: any[
         </h3>
         
         <ul className="space-y-4 mb-6">
-          {todayAgendas.length === 0 ? (
+          {displayAgendas.length === 0 ? (
             <li className="text-center p-6 text-on-surface-variant text-sm font-medium clay-card [--clay-card-bg:rgba(255,255,255,0.3)]">Kosong nih bun, ayo tambah agenda!</li>
           ) : (
-            todayAgendas.map((agenda) => {
+            displayAgendas.map((agenda) => {
               const isCompleted = agenda.IsCompleted === "TRUE" || agenda.IsCompleted === true;
               return (
                 <li 
@@ -127,20 +154,52 @@ export default function HomeChecklist({ initialAgendas }: { initialAgendas: any[
 
       {/* Catatan Kecil (Sticky Note) for today */}
       <section className="clay-card p-6 bg-clay-yellow border-white/40 transform rotate-1 mt-4 mb-8 w-full [--clay-card-bg:var(--color-tertiary-container)]">
-        <h3 className="text-lg text-on-tertiary-container mb-4 font-bold flex items-center gap-2">
-           <span className="text-2xl">✨</span> Catatan Kecil
+        <h3 className="text-lg text-on-tertiary-container mb-4 font-bold flex items-center justify-between">
+          <span className="flex items-center gap-2">
+             <span className="text-2xl">✨</span> Catatan Kecil
+          </span>
+          {isSavingNote && (
+            <span className="text-xs font-bold text-on-tertiary-container/60 animate-pulse flex items-center gap-1">
+              <Loader2 className="w-3 h-3 animate-spin" /> Menyimpan...
+            </span>
+          )}
         </h3>
-        <div className="space-y-4">
-          {todayAgendas.filter(a => a.Notes).length > 0 ? (
-            todayAgendas.filter(a => a.Notes).map(agenda => (
-              <div key={`note-${agenda.ID}`} className="text-on-tertiary-container/80 leading-relaxed pb-4 border-b border-tertiary/20 last:border-0 last:pb-0">
-                <p className="text-lg font-medium italic whitespace-pre-wrap">&quot;{agenda.Notes}&quot;</p>
+        <div className="flex flex-col gap-3">
+          <textarea
+            value={noteText}
+            onChange={(e) => setNoteText(e.target.value)}
+            onBlur={handleSaveNote}
+            placeholder="Tulis catatan kecil hari ini langsung di sini ya Bun... (misal: belanja minyak, resep, atau pengingat)"
+            className="w-full min-h-[140px] p-3 text-lg font-semibold bg-white/30 hover:bg-white/40 focus:bg-white/50 border-2 border-white/20 focus:border-white/60 focus:outline-none rounded-xl text-on-tertiary-container placeholder-on-tertiary-container/50 resize-none transition-all duration-300"
+          />
+          {noteText !== originalNoteText && (
+            <button
+              onClick={handleSaveNote}
+              disabled={isSavingNote}
+              className="clay-button bg-[#FFB2BC] text-white font-bold text-xs px-4 py-2 self-end hover:scale-105 active:scale-95 transition-all text-center flex items-center gap-1 shadow-sm border border-white/30"
+            >
+              {isSavingNote ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" /> Menyimpan...
+                </>
+              ) : (
+                <>Simpan Note ✨</>
+              )}
+            </button>
+          )}
+
+          {/* Show notes from other agendas as secondary reference if they exist */}
+          {todayAgendas.filter(a => a.Title !== 'Catatan Kecil' && a.Notes).length > 0 && (
+            <div className="mt-4 pt-3 border-t border-on-tertiary-container/10">
+              <span className="text-[10px] font-bold text-on-tertiary-container/40 uppercase tracking-widest block mb-1">Catatan dari Agenda Lain:</span>
+              <div className="space-y-2">
+                {todayAgendas.filter(a => a.Title !== 'Catatan Kecil' && a.Notes).map(agenda => (
+                  <div key={`other-note-${agenda.ID}`} className="text-sm text-on-tertiary-container/70 leading-relaxed font-semibold">
+                    <span className="text-primary font-bold">{agenda.Title}:</span> <span className="italic font-medium">&quot;{agenda.Notes}&quot;</span>
+                  </div>
+                ))}
               </div>
-            ))
-          ) : (
-            <p className="text-lg text-on-tertiary-container/70 leading-relaxed font-medium">
-              Tidak ada catatan tambahan untuk hari ini. Kamu hebat, Bun! ❤️
-            </p>
+            </div>
           )}
         </div>
       </section>
