@@ -106,19 +106,19 @@ export default function HomeChecklist({ initialAgendas }: { initialAgendas: any[
     <>
       {/* Checklist Hari Ini */}
       <section className={clsx(
-        "clay-card p-[24px] relative border-white/40 mb-8 transition-all duration-500",
+        "clay-card p-4 sm:p-[24px] relative border-white/40 mb-6 sm:mb-8 transition-all duration-500",
         isAllCompleted ? "[--clay-card-bg:var(--color-tertiary-container)]" : "[--clay-card-bg:var(--color-surface-container-low)]"
       )}>
-        <h3 className="text-2xl font-bold text-on-surface mb-6 flex items-center gap-3">
-          <div className="w-10 h-10 clay-icon-container shrink-0 [--clay-icon-bg:var(--color-surface)]">
-            <Check className={clsx("w-6 h-6", isAllCompleted ? "text-tertiary" : "text-primary")} />
+        <h3 className="text-xl sm:text-2xl font-bold text-on-surface mb-4 sm:mb-6 flex items-center gap-2 sm:gap-3">
+          <div className="w-8 h-8 sm:w-10 sm:h-10 clay-icon-container shrink-0 [--clay-icon-bg:var(--color-surface)]">
+            <Check className={clsx("w-5 h-5 sm:w-6 sm:h-6", isAllCompleted ? "text-tertiary" : "text-primary")} />
           </div>
           Checklist Hari Ini
         </h3>
         
-        <ul className="space-y-4 mb-6">
+        <ul className="space-y-2.5 sm:space-y-4 mb-4 sm:mb-6">
           {displayAgendas.length === 0 ? (
-            <li className="text-center p-6 text-on-surface-variant text-sm font-medium clay-card [--clay-card-bg:rgba(255,255,255,0.3)]">Kosong nih bun, ayo tambah agenda!</li>
+            <li className="text-center p-4 sm:p-6 text-on-surface-variant text-xs sm:text-sm font-medium clay-card [--clay-card-bg:rgba(255,255,255,0.3)]">Kosong nih bun, ayo tambah agenda!</li>
           ) : (
             displayAgendas.map((agenda) => {
               const isCompleted = agenda.IsCompleted === "TRUE" || agenda.IsCompleted === true;
@@ -126,19 +126,19 @@ export default function HomeChecklist({ initialAgendas }: { initialAgendas: any[
                 <li 
                   key={agenda.ID} 
                   onClick={() => handleToggleAgenda(agenda.ID)}
-                  className="flex items-center gap-4 clay-card p-4 group cursor-pointer active:scale-95 transition-all [--clay-card-bg:var(--color-surface)] border-white/40"
+                  className="flex items-center gap-3 sm:gap-4 clay-card p-2.5 sm:p-4 group cursor-pointer active:scale-95 transition-all [--clay-card-bg:var(--color-surface)] border-white/40"
                 >
                   <div className={clsx(
-                    "w-10 h-10 clay-button flex items-center justify-center transition-all shrink-0",
+                    "w-8 h-8 sm:w-10 sm:h-10 clay-button flex items-center justify-center transition-all shrink-0",
                     isCompleted ? "[--clay-btn-bg:var(--color-primary)]" : "[--clay-btn-bg:var(--color-surface-container-high)]"
                   )}>
                     {isToggling === agenda.ID ? (
-                      <Loader2 className={clsx("w-5 h-5 animate-spin", isCompleted ? "text-on-primary" : "text-primary")} />
+                      <Loader2 className={clsx("w-4 h-4 sm:w-5 sm:h-5 animate-spin", isCompleted ? "text-on-primary" : "text-primary")} />
                     ) : isCompleted ? (
-                      <Check className="w-5 h-5 text-white" strokeWidth={4} />
+                      <Check className="w-4 h-4 sm:w-5 sm:h-5 text-white" strokeWidth={4} />
                     ) : null}
                   </div>
-                  <span className={clsx("text-lg font-bold transition-all duration-300", isCompleted ? "text-outline/50 line-through" : "text-on-surface")}>
+                  <span className={clsx("text-sm sm:text-lg font-bold transition-all duration-300", isCompleted ? "text-outline/50 line-through" : "text-on-surface")}>
                     {agenda.Title}
                   </span>
                 </li>
@@ -147,8 +147,8 @@ export default function HomeChecklist({ initialAgendas }: { initialAgendas: any[
           )}
         </ul>
         
-        <Link href="/planner/new" className="clay-button bg-primary text-white text-sm font-bold px-6 py-3 inline-flex items-center gap-2 w-full justify-center">
-          <Plus className="w-4 h-4" /> Tambah Agenda
+        <Link href="/planner/new" className="clay-button bg-primary text-white text-xs sm:text-sm font-bold px-4 sm:px-6 py-2.5 sm:py-3 inline-flex items-center gap-2 w-full justify-center">
+          <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Tambah Agenda
         </Link>
       </section>
 
@@ -158,11 +158,21 @@ export default function HomeChecklist({ initialAgendas }: { initialAgendas: any[
           <span className="flex items-center gap-2">
              <span className="text-2xl">✨</span> Catatan Kecil
           </span>
-          {isSavingNote && (
-            <span className="text-xs font-bold text-on-tertiary-container/60 animate-pulse flex items-center gap-1">
-              <Loader2 className="w-3 h-3 animate-spin" /> Menyimpan...
-            </span>
-          )}
+          <div className="flex items-center gap-2">
+            {isSavingNote ? (
+              <span className="px-2 py-1 rounded-lg text-[10px] font-bold text-on-tertiary-container/60 animate-pulse bg-white/20 border border-white/20 flex items-center gap-1">
+                <Loader2 className="w-3 h-3 animate-spin" /> Menyimpan...
+              </span>
+            ) : noteText !== originalNoteText ? (
+              <span className="px-2 py-1 rounded-lg text-[10px] font-bold bg-[#FF8A65]/20 text-[#D84315] border border-[#FF8A65]/30 flex items-center gap-1 animate-pulse">
+                ✍️ Belum Disimpan
+              </span>
+            ) : noteText ? (
+              <span className="px-2 py-1 rounded-lg text-[10px] font-bold bg-emerald-500/10 text-emerald-700 border border-emerald-500/20 flex items-center gap-1">
+                ✓ Tersimpan Aman ✨
+              </span>
+            ) : null}
+          </div>
         </h3>
         <div className="flex flex-col gap-3">
           <textarea
@@ -170,7 +180,12 @@ export default function HomeChecklist({ initialAgendas }: { initialAgendas: any[
             onChange={(e) => setNoteText(e.target.value)}
             onBlur={handleSaveNote}
             placeholder="Tulis catatan kecil hari ini langsung di sini ya Bun... (misal: belanja minyak, resep, atau pengingat)"
-            className="w-full min-h-[140px] p-3 text-lg font-semibold bg-white/30 hover:bg-white/40 focus:bg-white/50 border-2 border-white/20 focus:border-white/60 focus:outline-none rounded-xl text-on-tertiary-container placeholder-on-tertiary-container/50 resize-none transition-all duration-300"
+            className={clsx(
+              "w-full min-h-[110px] p-3 text-sm font-semibold focus:outline-none rounded-xl text-on-tertiary-container placeholder-on-tertiary-container/55 resize-none transition-all duration-300",
+              noteText !== originalNoteText 
+                ? "bg-white/55 border-2 border-dashed border-[#FFB2BC] focus:bg-white/70"
+                : "bg-white/25 hover:bg-white/35 focus:bg-white/50 border-2 border-white/20 focus:border-white/50"
+            )}
           />
           {noteText !== originalNoteText && (
             <button
