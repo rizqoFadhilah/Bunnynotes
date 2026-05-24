@@ -12,7 +12,7 @@ interface Message {
   content: string;
 }
 
-const DEFAULT_WELCOME = "Halo Bunda sayang! 🐰🌸\n\nBunBot sekarang siap bantuin Bunda catat transaksi pengeluaran/pemasukan dengan super cepat lho! ⚡💕\n\nBunda tinggal ketik pesan singkat atau **klik icon mik 🎤** di bawah untuk langsung bercerita lewat suara Bunda! Contohnya:\n✍️ *'transport bensin 5k'*\n✍️ *'makan bakso 20rb'*\n✍️ *'Beli susu anak tadi habis 150 ribu'* via rekaman suara.\n\nNanti BunBot langsung otomatis memproses dan mencatatnya ke keuangan Bunda! Praktis banget kan? Yuk cobain sekarang! 🥰✨";
+const DEFAULT_WELCOME = "Halo Bunda sayang! 🐰🌸\n\nBunyBot sekarang siap bantuin Bunda catat transaksi pengeluaran/pemasukan dengan super cepat lho! ⚡💕\n\nBunda tinggal ketik pesan singkat atau **klik icon mik 🎤** di bawah untuk langsung bercerita lewat suara Bunda! Contohnya:\n✍️ *'transport bensin 5k'*\n✍️ *'makan bakso 20rb'*\n✍️ *'Beli susu anak tadi habis 150 ribu'* via rekaman suara.\n\nNanti BunyBot langsung otomatis memproses dan mencatatnya ke keuangan Bunda! Praktis banget kan? Yuk cobain sekarang! 🥰✨";
 
 const QUICK_ACTIONS = [
   { label: "🚗 Transport Bensin", prompt: "transport bensin 5k" },
@@ -32,7 +32,7 @@ export default function FloatingChatbot({ categories = [] }: { categories?: any[
   const [isMounted, setIsMounted] = useState(false);
   const messageEndRef = useRef<HTMLDivElement>(null);
 
-  // BunBot Voice Assistant State
+  // BunyBot Voice Assistant State
   const [isRecording, setIsRecording] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
   const [recordSeconds, setRecordSeconds] = useState(0);
@@ -87,7 +87,7 @@ export default function FloatingChatbot({ categories = [] }: { categories?: any[
       const readableTipe = pendingVoiceTransaction.Tipe === 'Income' ? 'Pemasukan' : 'Pengeluaran';
       setMessages(prev => [...prev, {
         role: 'model',
-        content: `Hore Bunda sayang! 🎉\n\nKategori baru **"${catName}"** berhasil ditambahkan ke daftar Bunda. Transaksi Bunda juga otomatis disimpan:\n🌟 **Jenis**: ${readableTipe}\n💰 **Nominal**: Rp ${pendingVoiceTransaction.Nominal.toLocaleString('id-ID')}\n📂 **Kategori**: ${catName}\n📝 **Catatan**: "${pendingVoiceTransaction.Catatan || 'Tanpa Catatan'}"\n\nBunBot hebat kan? 🥰💕✨`
+        content: `Hore Bunda sayang! 🎉\n\nKategori baru **"${catName}"** berhasil ditambahkan ke daftar Bunda. Transaksi Bunda juga otomatis disimpan:\n🌟 **Jenis**: ${readableTipe}\n💰 **Nominal**: Rp ${pendingVoiceTransaction.Nominal.toLocaleString('id-ID')}\n📂 **Kategori**: ${catName}\n📝 **Catatan**: "${pendingVoiceTransaction.Catatan || 'Tanpa Catatan'}"\n\nBunyBot hebat kan? 🥰💕✨`
       }]);
       setPendingVoiceTransaction(null);
     } catch (err) {
@@ -184,11 +184,11 @@ export default function FloatingChatbot({ categories = [] }: { categories?: any[
 
       let friendlyError = '';
       if (isDeviceNotFound) {
-        friendlyError = 'Aduh Bunda sayang, BunBot tidak menemukan perangkat mikrofon yang aktif di HP/laptop/browser Bunda saat ini. 🎤❌\n\nBunda bisa menghubungkan mikrofon terlebih dahulu, atau langsung ketik cerita keuangan Bunda kapan saja di kolom teks di bawah ya! Tetap super praktis kok! 💕';
+        friendlyError = 'Aduh Bunda sayang, BunyBot tidak menemukan perangkat mikrofon yang aktif di HP/laptop/browser Bunda saat ini. 🎤❌\n\nBunda bisa menghubungkan mikrofon terlebih dahulu, atau langsung ketik cerita keuangan Bunda kapan saja di kolom teks di bawah ya! Tetap super praktis kok! 💕';
       } else if (isSandboxOrIframe) {
         friendlyError = 'Aduh Bunda sayang, fitur perekaman suara terhalang oleh aturan keamanan browser atau sandboxing iframe di penampil ini. 🔒\n\nBunda bisa **Membuka Aplikasi di Tab Baru** (lewat tombol panah di kanan atas layar) untuk mencobanya secara penuh, atau ketik langsung ceritanya di kolom chat bawah ya! 🥰🌸';
       } else {
-        friendlyError = `Aduh Bunda sayang, BunBot belum bisa mengakses mikrofon saat ini (${err.message || 'Izin ditolak'}). 😢\n\nPastikan Bunda sudah mengizinkan mikrofon di browser, atau ceritakan langsung lewat ketikan di kolom chat bawah ya! 🌸`;
+        friendlyError = `Aduh Bunda sayang, BunyBot belum bisa mengakses mikrofon saat ini (${err.message || 'Izin ditolak'}). 😢\n\nPastikan Bunda sudah mengizinkan mikrofon di browser, atau ceritakan langsung lewat ketikan di kolom chat bawah ya! 🌸`;
       }
 
       setMessages(prev => [...prev, {
@@ -268,7 +268,7 @@ export default function FloatingChatbot({ categories = [] }: { categories?: any[
             const readableTipe = tipe === 'Income' ? 'Pemasukan' : 'Pengeluaran';
             setMessages(prev => [...prev, {
               role: 'model',
-              content: `Wah Bun, BunBot udah denger cerita rekaman suara Bunda! 🐰🌸\n\nBunBot bantu catetin otomatis ya:\n🌟 **Jenis**: ${readableTipe}\n💰 **Nominal**: Rp ${Number(nominal).toLocaleString('id-ID')}\n📂 **Kategori**: ${matchedCategory.Nama}\n📝 **Catatan**: "${catatan || 'Tanpa Catatan'}"\n\nTransaksi Bunda beneran udah berhasil disimpan dengan rapi! Hebat banget Bunda hari ini! 🥰✨`
+              content: `Wah Bun, BunyBot udah denger cerita rekaman suara Bunda! 🐰🌸\n\nBunyBot bantu catetin otomatis ya:\n🌟 **Jenis**: ${readableTipe}\n💰 **Nominal**: Rp ${Number(nominal).toLocaleString('id-ID')}\n📂 **Kategori**: ${matchedCategory.Nama}\n📝 **Catatan**: "${catatan || 'Tanpa Catatan'}"\n\nTransaksi Bunda beneran udah berhasil disimpan dengan rapi! Hebat banget Bunda hari ini! 🥰✨`
             }]);
           } else {
             // Category is NOT registered! Do NOT save. Set state to pending and prompt.
@@ -283,13 +283,13 @@ export default function FloatingChatbot({ categories = [] }: { categories?: any[
 
             setMessages(prev => [...prev, {
               role: 'model',
-              content: `Wah Bun, BunBot denger cerita Bunda senilai **Rp ${Number(nominal).toLocaleString('id-ID')}** untuk *"${catatan || 'Tanpa Catatan'}"*.\n\nNamun, kategori **"${kategori_rekomendasi || 'Lainnya'}"** belum terdaftar di daftar kategori Bunda saat ini. 🤔💭\n\nSilakan tentukan keputusan Bunda di bawah ini ya! 👇`
+              content: `Wah Bun, BunyBot denger cerita Bunda senilai **Rp ${Number(nominal).toLocaleString('id-ID')}** untuk *"${catatan || 'Tanpa Catatan'}"*.\n\nNamun, kategori **"${kategori_rekomendasi || 'Lainnya'}"** belum terdaftar di daftar kategori Bunda saat ini. 🤔💭\n\nSilakan tentukan keputusan Bunda di bawah ini ya! 👇`
             }]);
           }
         } else {
           setMessages(prev => [...prev, {
             role: 'model',
-            content: `Aduh Bun, BunBot kurang bisa menangkap angka nominal transaksi dalam cerita suara Bunda tadi. 😢\nBisa tolong rekam ulang ceritanya dengan menyebutkan nominal nominal atau ketik langsung di kolom chat ya, Bun? 💕`
+            content: `Aduh Bun, BunyBot kurang bisa menangkap angka nominal transaksi dalam cerita suara Bunda tadi. 😢\nBisa tolong rekam ulang ceritanya dengan menyebutkan nominal nominal atau ketik langsung di kolom chat ya, Bun? 💕`
           }]);
         }
       };
@@ -297,7 +297,7 @@ export default function FloatingChatbot({ categories = [] }: { categories?: any[
       console.error('Error processing audio in chatbot:', err);
       setMessages(prev => [...prev, {
         role: 'model',
-        content: `Wah Bunda sayang, sepertinya BunBot gagal memproses suara rekaman. Cerita Bunda tadi boleh diketik langsung atau dicoba direkam ulang dengan lebih dekat ke mic ya? 🐰🌸`
+        content: `Wah Bunda sayang, sepertinya BunyBot gagal memproses suara rekaman. Cerita Bunda tadi boleh diketik langsung atau dicoba direkam ulang dengan lebih dekat ke mic ya? 🐰🌸`
       }]);
     } finally {
       setIsAnalyzingVoice(false);
@@ -307,7 +307,7 @@ export default function FloatingChatbot({ categories = [] }: { categories?: any[
   // Load history from localStorage only on client-side mount
   useEffect(() => {
     setIsMounted(true);
-    const saved = localStorage.getItem('bunbot_chat_history');
+    const saved = localStorage.getItem('bunybot_chat_history') || localStorage.getItem('bunbot_chat_history');
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
@@ -323,7 +323,7 @@ export default function FloatingChatbot({ categories = [] }: { categories?: any[
   // Save history to localStorage whenever messages change
   useEffect(() => {
     if (isMounted) {
-      localStorage.setItem('bunbot_chat_history', JSON.stringify(messages));
+      localStorage.setItem('bunybot_chat_history', JSON.stringify(messages));
     }
   }, [messages, isMounted]);
 
@@ -394,10 +394,10 @@ export default function FloatingChatbot({ categories = [] }: { categories?: any[
         content: data.reply
       }]);
     } catch (error) {
-      console.error('Error talking with BunBot:', error);
+      console.error('Error talking with BunyBot:', error);
       setMessages(prev => [...prev, {
         role: 'model',
-        content: "Aduh Bunda sayang, sepertinya jaringan BunBot lagi tersangkut di wortel nih 🥕 Coba kirim pesan lagi sebentar ya, Bun! Semoga Bunda tetap ceria! 💕🌸"
+        content: "Aduh Bunda sayang, sepertinya jaringan BunyBot lagi tersangkut di wortel nih 🥕 Coba kirim pesan lagi sebentar ya, Bun! Semoga Bunda tetap ceria! 💕🌸"
       }]);
     } finally {
       setIsLoading(false);
@@ -408,7 +408,7 @@ export default function FloatingChatbot({ categories = [] }: { categories?: any[
     if (confirm('Bunda yakin mau membersihkan riwayat obrolan kita?')) {
       const resetState: Message[] = [{ role: 'model', content: DEFAULT_WELCOME }];
       setMessages(resetState);
-      localStorage.setItem('bunbot_chat_history', JSON.stringify(resetState));
+      localStorage.setItem('bunybot_chat_history', JSON.stringify(resetState));
     }
   };
 
@@ -435,7 +435,7 @@ export default function FloatingChatbot({ categories = [] }: { categories?: any[
                 </div>
                 <div>
                   <h3 className="text-sm font-bold text-on-surface flex items-center gap-1">
-                    BunBot 🐰💕
+                    BunyBot 🐰💕
                     <span className="flex h-2 w-2 relative">
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-secondary opacity-75"></span>
                       <span className="relative inline-flex rounded-full h-2 w-2 bg-secondary"></span>
@@ -486,7 +486,7 @@ export default function FloatingChatbot({ categories = [] }: { categories?: any[
                     {msg.content}
                   </div>
                   <span className="text-[9px] text-on-surface-variant/70 mt-1 px-1">
-                    {msg.role === 'user' ? 'Bunda' : 'BunBot'}
+                    {msg.role === 'user' ? 'Bunda' : 'BunyBot'}
                   </span>
                 </div>
               ))}
@@ -495,7 +495,7 @@ export default function FloatingChatbot({ categories = [] }: { categories?: any[
                 <div className="self-start flex flex-col items-start max-w-[85%]">
                   <div className="bg-surface-container text-on-surface border-white/60 border-2 rounded-2xl rounded-bl-sm p-3 text-xs font-medium shadow-xs flex items-center gap-2">
                     <Loader2 className="w-3.5 h-3.5 animate-spin text-primary" />
-                    <span>BunBot sedang mencatat... 🐰✨</span>
+                    <span>BunyBot sedang mencatat... 🐰✨</span>
                   </div>
                 </div>
               )}
@@ -504,7 +504,7 @@ export default function FloatingChatbot({ categories = [] }: { categories?: any[
                 <div className="self-start flex flex-col items-start max-w-[85%]">
                   <div className="bg-surface-container text-on-surface border-white/60 border-2 rounded-2xl rounded-bl-sm p-3 text-xs font-medium shadow-xs flex items-center gap-2">
                     <Loader2 className="w-3.5 h-3.5 animate-spin text-primary animate-pulse" />
-                    <span>BunBot sedang memahami suara Bunda... 🐰🌸</span>
+                    <span>BunyBot sedang memahami suara Bunda... 🐰🌸</span>
                   </div>
                 </div>
               )}
@@ -605,7 +605,7 @@ export default function FloatingChatbot({ categories = [] }: { categories?: any[
                 <div className="flex-1 flex items-center justify-between bg-red-50 rounded-xl px-3 py-1.5 border-2 border-red-200">
                   <div className="flex items-center gap-2">
                     <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping shrink-0" />
-                    <span className="text-xs font-black text-red-600">BunBot merekam... {recordSeconds}s</span>
+                    <span className="text-xs font-black text-red-600">BunyBot merekam... {recordSeconds}s</span>
                   </div>
                   <button
                     type="button"
@@ -639,7 +639,7 @@ export default function FloatingChatbot({ categories = [] }: { categories?: any[
                     type="text"
                     value={inputText}
                     onChange={(e) => setInputText(e.target.value)}
-                    placeholder={pendingVoiceTransaction ? "Pilih keputusan kategori di atas..." : isAnalyzingVoice ? "BunBot sedang mendengarkan..." : "Tulis cerita transaksi cepat..."}
+                    placeholder={pendingVoiceTransaction ? "Pilih keputusan kategori di atas..." : isAnalyzingVoice ? "BunyBot sedang mendengarkan..." : "Tulis cerita transaksi cepat..."}
                     disabled={isLoading || isAnalyzingVoice || !!pendingVoiceTransaction}
                     className="flex-1 bg-surface-container border-white border-2 rounded-xl py-2 px-3 text-xs font-bold text-on-surface placeholder:text-on-surface-variant/60 outline-hidden focus:ring-2 focus:ring-primary transition"
                   />

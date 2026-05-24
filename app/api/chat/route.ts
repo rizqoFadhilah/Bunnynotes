@@ -8,7 +8,7 @@ export async function POST(req: NextRequest) {
       console.warn("GEMINI_API_KEY is not set in environment variables.");
       return NextResponse.json({
         isTransaction: false,
-        reply: "Halo Bunda sayang! BunBot sangat ingin membantu Bunda mencatat keuangan secara otomatis 🐰🌸 Tapi sepertinya kunci API (GEMINI_API_KEY) belum dikonfigurasi di pengaturan aplikasi nih. Mohon disetel dulu ya di bagian Settings > Secrets agar BunBot bisa berjalan dengan pintar! 💕✨"
+        reply: "Halo Bunda sayang! BunyBot sangat ingin membantu Bunda mencatat keuangan secara otomatis 🐰🌸 Tapi sepertinya kunci API (GEMINI_API_KEY) belum dikonfigurasi di pengaturan aplikasi nih. Mohon disetel dulu ya di bagian Settings > Secrets agar BunyBot bisa berjalan dengan pintar! 💕✨"
       });
     }
 
@@ -42,7 +42,7 @@ Pesan dari Bunda: "${userPrompt}"
 
 Daftar kategori yang tersedia saat ini: ${JSON.stringify(categoriesList)}`,
       config: {
-        systemInstruction: `Anda adalah BunBot (asisten kelinci imut 🐰🌸). Tugas utama Anda adalah mengurai pesan singkat lisan atau chat bahasa Indonesia dari Bunda menjadi data transaksi keuangan terstruktur (pengeluaran atau pemasukan).
+        systemInstruction: `Anda adalah BunyBot (asisten kelinci imut 🐰🌸). Tugas utama Anda adalah mengurai pesan singkat lisan atau chat bahasa Indonesia dari Bunda menjadi data transaksi keuangan terstruktur (pengeluaran atau pemasukan).
 
 Pahami pola penulisan cepat seperti:
 - "transport bensin 5k" -> kategori "Transport", bensin "Catatan", nominal 5000.
@@ -56,7 +56,7 @@ Aturan Pemetaan:
 3. kategori: Pilih salah satu nama kategori yang paling mendekati dari list tersedia yang diberikan. Jika tidak ada yang cocok sama sekali, gunakan salah satu dari default ('Food', 'Household', 'Kids', 'Skincare', 'Transport', 'Savings') yang dianggap paling relevan.
 4. catatan: Bagian deskripsi/perincian yang bersih (misalnya "bensin", "parkir", "bakso", "belanja sayur"). Buat singkat dan manis.
 5. nominal: Hanya angka murni (integer) tanpa titik/koma/simbol mata uang. Parsing kata singkatan seperti "k"/"rb" -> "000", "jt" -> "000000".
-6. reply: Jika transaksi berhasil diurai, buat balasan yang super imut, hangat, dan mengonfirmasi pencatatan ini menggunakan gaya bahasa BunBot yang imut (🐰🌸✨💕) lengkap dengan detail apa saja yang dicatat. Jika isTransaction false, balas dengan sapaan hangat yang memandu Bunda untuk menulis transaksi cepat saja demi kepraktisan.`,
+6. reply: Jika transaksi berhasil diurai, buat balasan yang super imut, hangat, dan mengonfirmasi pencatatan ini menggunakan gaya bahasa BunyBot yang imut (🐰🌸✨💕) lengkap dengan detail apa saja yang dicatat. Jika isTransaction false, balas dengan sapaan hangat yang memandu Bunda untuk menulis transaksi cepat saja demi kepraktisan.`,
         temperature: 0.1, // Low temperature for consistent extraction
         responseMimeType: "application/json",
         responseSchema: {
@@ -91,7 +91,7 @@ Aturan Pemetaan:
             },
             reply: {
               type: Type.STRING,
-              description: "Kalimat balasan super imut khas BunBot untuk dikembalikan ke layar percakapan Bunda."
+              description: "Kalimat balasan super imut khas BunyBot untuk dikembalikan ke layar percakapan Bunda."
             }
           },
           required: ["isTransaction", "reply"]
@@ -107,7 +107,7 @@ Aturan Pemetaan:
     console.error("Gemini API Error:", error);
     return NextResponse.json({
       isTransaction: false,
-      reply: "Aduh Bunda sayang, sepertinya jaringan BunBot lagi tersangkut di wortel nih 🥕 Coba kirim pesan lagi sebentar ya, Bun! Semoga Bunda tetap ceria! 💕🌸"
+      reply: "Aduh Bunda sayang, sepertinya jaringan BunyBot lagi tersangkut di wortel nih 🥕 Coba kirim pesan lagi sebentar ya, Bun! Semoga Bunda tetap ceria! 💕🌸"
     }, { status: 500 });
   }
 }

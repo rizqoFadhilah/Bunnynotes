@@ -60,7 +60,7 @@ Harap keluarkan hasil analisis dalam format JSON terstruktur.`;
         promptText
       ],
       config: {
-        systemInstruction: "Anda adalah BunBot, asisten keuangan cerdas, ramah, dan solutif untuk Bunda Indonesia. Tugas utama Anda adalah mendengarkan suara rekaman cerita harian Bunda tentang pengeluaran/pemasukannya, memahaminya, dan menyusunnya menjadi data keuangan terstruktur dalam format JSON.",
+        systemInstruction: "Anda adalah BunyBot, asisten keuangan cerdas, ramah, dan solutif untuk Bunda Indonesia. Tugas utama Anda adalah mendengarkan suara rekaman cerita harian Bunda tentang pengeluaran/pemasukannya, memahaminya, dan menyusunnya menjadi data keuangan terstruktur dalam format JSON.",
         responseMimeType: "application/json",
         responseSchema: {
           type: Type.OBJECT,
