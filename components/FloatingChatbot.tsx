@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'motion/react';
 import { Rabbit, Send, X, RotateCcw, Sparkles, Loader2, Mic, Square } from 'lucide-react';
-import { addTransaction } from '@/lib/api';
+import { addTransaction, addCategory, getCategories } from '@/lib/api';
 import { getWITDateTime } from '@/lib/utils';
 
 interface Message {
@@ -37,6 +37,96 @@ export default function FloatingChatbot({ categories = [] }: { categories?: any[
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
   const [recordSeconds, setRecordSeconds] = useState(0);
   const [isAnalyzingVoice, setIsAnalyzingVoice] = useState(false);
+
+  // Categories & Pending Interactive Fallback States
+  const [localCategories, setLocalCategories] = useState<any[]>([]);
+  const [pendingVoiceTransaction, setPendingVoiceTransaction] = useState<{
+    Tipe: string;
+    KategoriRekomendasi: string;
+    Nominal: number;
+    Catatan: string;
+    Tanggal: string;
+    Waktu: string;
+  } | null>(null);
+
+  useEffect(() => {
+    setLocalCategories(categories);
+  }, [categories]);
+
+  const handleCreateNewCategoryAndSave = async () => {
+    if (!pendingVoiceTransaction) return;
+    setIsLoading(true);
+    try {
+      const catName = pendingVoiceTransaction.KategoriRekomendasi;
+      await addCategory({
+        Nama: catName,
+        Icon: 'Sparkles',
+        Warna: 'text-primary'
+      });
+      
+      const freshCats = await getCategories();
+      setLocalCategories(freshCats);
+      
+      const matched = freshCats.find(
+        (c: any) => String(c.Nama).toLowerCase() === String(catName).toLowerCase()
+      );
+      const catId = matched ? (matched.ID || matched.id) : catName;
+
+      const newTransaction = {
+        Tipe: pendingVoiceTransaction.Tipe,
+        Kategori: catId,
+        Nominal: pendingVoiceTransaction.Nominal,
+        Catatan: pendingVoiceTransaction.Catatan,
+        Tanggal: pendingVoiceTransaction.Tanggal,
+        Waktu: pendingVoiceTransaction.Waktu
+      };
+
+      await addTransaction(newTransaction);
+      router.refresh();
+
+      const readableTipe = pendingVoiceTransaction.Tipe === 'Income' ? 'Pemasukan' : 'Pengeluaran';
+      setMessages(prev => [...prev, {
+        role: 'model',
+        content: `Hore Bunda sayang! 🎉\n\nKategori baru **"${catName}"** berhasil ditambahkan ke daftar Bunda. Transaksi Bunda juga otomatis disimpan:\n🌟 **Jenis**: ${readableTipe}\n💰 **Nominal**: Rp ${pendingVoiceTransaction.Nominal.toLocaleString('id-ID')}\n📂 **Kategori**: ${catName}\n📝 **Catatan**: "${pendingVoiceTransaction.Catatan || 'Tanpa Catatan'}"\n\nBunBot hebat kan? 🥰💕✨`
+      }]);
+      setPendingVoiceTransaction(null);
+    } catch (err) {
+      console.error('Error creating cat in chatbot:', err);
+      alert('Gagal membuat kategori baru.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSaveWithExistingCategory = async (matchedCat: any) => {
+    if (!pendingVoiceTransaction) return;
+    setIsLoading(true);
+    try {
+      const newTransaction = {
+        Tipe: pendingVoiceTransaction.Tipe,
+        Kategori: matchedCat.ID || matchedCat.id,
+        Nominal: pendingVoiceTransaction.Nominal,
+        Catatan: pendingVoiceTransaction.Catatan,
+        Tanggal: pendingVoiceTransaction.Tanggal,
+        Waktu: pendingVoiceTransaction.Waktu
+      };
+
+      await addTransaction(newTransaction);
+      router.refresh();
+
+      const readableTipe = pendingVoiceTransaction.Tipe === 'Income' ? 'Pemasukan' : 'Pengeluaran';
+      setMessages(prev => [...prev, {
+        role: 'model',
+        content: `Selesai Bun! Transaksi Bunda berhasil dihubungkan dan dicatatkan ke kategori **"${matchedCat.Nama}"**:\n🌟 **Jenis**: ${readableTipe}\n💰 **Nominal**: Rp ${pendingVoiceTransaction.Nominal.toLocaleString('id-ID')}\n📝 **Catatan**: "${pendingVoiceTransaction.Catatan || 'Tanpa Catatan'}"\n\nSudah tersimpan rapi ya! 🥰🌸`
+      }]);
+      setPendingVoiceTransaction(null);
+    } catch (err) {
+      console.error('Error saving transaction with existing category:', err);
+      alert('Gagal mencatat transaksi.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
     let timer: any;
@@ -156,29 +246,46 @@ export default function FloatingChatbot({ categories = [] }: { categories?: any[
           const timeStr = wit.timeStr;
 
           // Match category name
-          const matchedCategory = categories.find(
+          const matchedCategory = localCategories.find(
             c => String(c.Nama).toLowerCase() === String(kategori_rekomendasi).toLowerCase() ||
                  String(c.ID || c.id).toLowerCase() === String(kategori_rekomendasi).toLowerCase()
           );
-          const categoryValue = matchedCategory ? (matchedCategory.ID || matchedCategory.id) : (kategori_rekomendasi || 'Food');
 
-          const newTransaction = {
-            Tipe: tipe || 'Expense',
-            Kategori: categoryValue,
-            Nominal: Number(nominal) || 0,
-            Catatan: catatan || '',
-            Tanggal: dateStr,
-            Waktu: timeStr
-          };
+          if (matchedCategory) {
+            const categoryValue = matchedCategory.ID || matchedCategory.id;
+            const newTransaction = {
+              Tipe: tipe || 'Expense',
+              Kategori: categoryValue,
+              Nominal: Number(nominal) || 0,
+              Catatan: catatan || '',
+              Tanggal: dateStr,
+              Waktu: timeStr
+            };
 
-          await addTransaction(newTransaction);
-          router.refresh();
+            await addTransaction(newTransaction);
+            router.refresh();
 
-          const readableTipe = tipe === 'Income' ? 'Pemasukan' : 'Pengeluaran';
-          setMessages(prev => [...prev, {
-            role: 'model',
-            content: `Wah Bun, BunBot udah denger cerita rekaman suara Bunda! 🐰🌸\n\nBunBot bantu catetin otomatis ya:\n🌟 **Jenis**: ${readableTipe}\n💰 **Nominal**: Rp ${Number(nominal).toLocaleString('id-ID')}\n📂 **Kategori**: ${matchedCategory ? matchedCategory.Nama : categoryValue}\n📝 **Catatan**: "${catatan || 'Tanpa Catatan'}"\n\nTransaksi Bunda beneran udah berhasil disimpan dengan rapi! Hebat banget Bunda hari ini! 🥰✨`
-          }]);
+            const readableTipe = tipe === 'Income' ? 'Pemasukan' : 'Pengeluaran';
+            setMessages(prev => [...prev, {
+              role: 'model',
+              content: `Wah Bun, BunBot udah denger cerita rekaman suara Bunda! 🐰🌸\n\nBunBot bantu catetin otomatis ya:\n🌟 **Jenis**: ${readableTipe}\n💰 **Nominal**: Rp ${Number(nominal).toLocaleString('id-ID')}\n📂 **Kategori**: ${matchedCategory.Nama}\n📝 **Catatan**: "${catatan || 'Tanpa Catatan'}"\n\nTransaksi Bunda beneran udah berhasil disimpan dengan rapi! Hebat banget Bunda hari ini! 🥰✨`
+            }]);
+          } else {
+            // Category is NOT registered! Do NOT save. Set state to pending and prompt.
+            setPendingVoiceTransaction({
+              Tipe: tipe || 'Expense',
+              KategoriRekomendasi: kategori_rekomendasi || 'Lainnya',
+              Nominal: Number(nominal) || 0,
+              Catatan: catatan || '',
+              Tanggal: dateStr,
+              Waktu: timeStr
+            });
+
+            setMessages(prev => [...prev, {
+              role: 'model',
+              content: `Wah Bun, BunBot denger cerita Bunda senilai **Rp ${Number(nominal).toLocaleString('id-ID')}** untuk *"${catatan || 'Tanpa Catatan'}"*.\n\nNamun, kategori **"${kategori_rekomendasi || 'Lainnya'}"** belum terdaftar di daftar kategori Bunda saat ini. 🤔💭\n\nSilakan tentukan keputusan Bunda di bawah ini ya! 👇`
+            }]);
+          }
         } else {
           setMessages(prev => [...prev, {
             role: 'model',
@@ -401,6 +508,66 @@ export default function FloatingChatbot({ categories = [] }: { categories?: any[
                   </div>
                 </div>
               )}
+
+              {/* Interactive Fallback Panel for Unregistered Category */}
+              {pendingVoiceTransaction && (
+                <div className="self-start w-full max-w-[95%] clay-card p-3 my-2 border-2 border-dashed border-primary/50 bg-primary-container/[0.08] text-xs transition-all animate-in fade-in-50 duration-200">
+                  <p className="font-extrabold text-on-surface mb-2 flex items-center gap-1">
+                    <Sparkles className="w-4 h-4 text-primary" /> Keputusan Kategori:
+                  </p>
+                  
+                  <div className="flex flex-col gap-2">
+                    {/* Option 1: Create new category */}
+                    <button
+                      type="button"
+                      disabled={isLoading}
+                      onClick={handleCreateNewCategoryAndSave}
+                      className="clay-button py-2 px-3 text-[11px] font-black text-white shrink-0 [--clay-btn-bg:var(--color-primary)] flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
+                    >
+                      {isLoading ? (
+                        <Loader2 className="w-3 h-3 animate-spin" />
+                      ) : (
+                        <span>➕ Buat Kategori Baru &quot;{pendingVoiceTransaction.KategoriRekomendasi}&quot;</span>
+                      )}
+                    </button>
+                    
+                    <p className="text-[10px] text-on-surface-variant font-extrabold text-center my-0.5 uppercase tracking-wider">— ATAU PILIH KATEGORI YANG ADA —</p>
+                    
+                    {/* Option 2: Existing categories grid */}
+                    <div className="grid grid-cols-2 gap-1.5 max-h-[120px] overflow-y-auto pr-1">
+                      {localCategories
+                        .filter(c => !pendingVoiceTransaction.Tipe || c.Tipe === pendingVoiceTransaction.Tipe || !c.Tipe)
+                        .map(c => (
+                          <button
+                            key={c.ID || c.id}
+                            type="button"
+                            disabled={isLoading}
+                            onClick={() => handleSaveWithExistingCategory(c)}
+                            className="bg-surface-container hover:bg-primary-container/[0.3] border-2 border-white py-1.5 px-2 rounded-xl text-[10px] font-black text-on-surface-variant hover:text-on-primary-container text-left transition truncate cursor-pointer disabled:opacity-50"
+                          >
+                            📁 {c.Nama}
+                          </button>
+                        ))}
+                    </div>
+                    
+                    {/* Option 3: Cancel */}
+                    <button
+                      type="button"
+                      disabled={isLoading}
+                      onClick={() => {
+                        setPendingVoiceTransaction(null);
+                        setMessages(prev => [...prev, {
+                          role: 'model',
+                          content: 'Transaksi dibatalkan. Bunda bisa menceritakan transaksi lainnya kapan saja ya! 🐰🌸'
+                        }]);
+                      }}
+                      className="border-2 border-red-200 hover:bg-red-50 text-red-500 rounded-xl py-1.5 text-[10px] font-extrabold text-center transition active:scale-95 cursor-pointer disabled:opacity-50"
+                    >
+                      ❌ Batalkan Transaksi Ini
+                    </button>
+                  </div>
+                </div>
+              )}
               <div ref={messageEndRef} />
             </div>
 
@@ -454,10 +621,10 @@ export default function FloatingChatbot({ categories = [] }: { categories?: any[
                 <>
                   <button
                     type="button"
-                    disabled={isLoading || isAnalyzingVoice}
+                    disabled={isLoading || isAnalyzingVoice || !!pendingVoiceTransaction}
                     onClick={startRecording}
                     className={`p-2 w-9 h-9 flex items-center justify-center rounded-xl border border-white transition-all hover:scale-105 active:scale-95 text-primary ${
-                      isAnalyzingVoice ? 'bg-surface-container opacity-50' : 'bg-primary-container/[0.3] hover:bg-primary-container/[0.5]'
+                      isAnalyzingVoice || !!pendingVoiceTransaction ? 'bg-surface-container opacity-50' : 'bg-primary-container/[0.3] hover:bg-primary-container/[0.5]'
                     }`}
                     title="Ceritakan Lewat Suara"
                   >
@@ -472,14 +639,14 @@ export default function FloatingChatbot({ categories = [] }: { categories?: any[
                     type="text"
                     value={inputText}
                     onChange={(e) => setInputText(e.target.value)}
-                    placeholder={isAnalyzingVoice ? "BunBot sedang mendengarkan..." : "Tulis cerita transaksi cepat..."}
-                    disabled={isLoading || isAnalyzingVoice}
+                    placeholder={pendingVoiceTransaction ? "Pilih keputusan kategori di atas..." : isAnalyzingVoice ? "BunBot sedang mendengarkan..." : "Tulis cerita transaksi cepat..."}
+                    disabled={isLoading || isAnalyzingVoice || !!pendingVoiceTransaction}
                     className="flex-1 bg-surface-container border-white border-2 rounded-xl py-2 px-3 text-xs font-bold text-on-surface placeholder:text-on-surface-variant/60 outline-hidden focus:ring-2 focus:ring-primary transition"
                   />
                   <button
                     id="chatbot-submit"
                     type="submit"
-                    disabled={!inputText.trim() || isLoading || isAnalyzingVoice}
+                    disabled={!inputText.trim() || isLoading || isAnalyzingVoice || !!pendingVoiceTransaction}
                     className="clay-button p-2 w-9 h-9 flex items-center justify-center text-white disabled:opacity-50 disabled:scale-100 cursor-pointer [--clay-btn-bg:var(--color-primary)] [--clay-btn-highlight:rgba(255,255,255,0.4)]"
                   >
                     <Send className="w-4 h-4" />
