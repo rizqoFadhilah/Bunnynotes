@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { getTransactions, getBudgets, getCategories, getAgendas } from '@/lib/api';
 import HomeChecklist from '@/components/home-checklist';
 import GreetingHeader from '@/components/GreetingHeader';
+import FloatingChatbot from '@/components/FloatingChatbot';
 import { useState, useEffect } from 'react';
 
 export default function HomePage() {
@@ -119,6 +120,9 @@ export default function HomePage() {
 
       {/* Checklist Hari Ini */}
       <HomeChecklist initialAgendas={agendas || []} />
+
+      {/* Floating Chatbot */}
+      <FloatingChatbot categories={categories} />
     </>
   );
 }

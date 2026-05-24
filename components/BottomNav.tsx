@@ -9,11 +9,11 @@ export default function BottomNav() {
   const pathname = usePathname();
 
   const links = [
-    { href: '/', icon: Home, label: 'Home' },
-    { href: '/money', icon: Wallet, label: 'Money' },
-    { href: '/planner', icon: CalendarDays, label: 'Planner' },
-    { href: '/budget', icon: Receipt, label: 'Budget' },
-    { href: '/profile', icon: User, label: 'Profile' },
+    { href: '/', icon: Home, label: 'Beranda' },
+    { href: '/money', icon: Wallet, label: 'Keuangan' },
+    { href: '/planner', icon: CalendarDays, label: 'Agenda' },
+    { href: '/budget', icon: Receipt, label: 'Anggaran' },
+    { href: '/profile', icon: User, label: 'Profil' },
   ];
 
   return (

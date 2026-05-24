@@ -105,7 +105,7 @@ export default function ProfilePage() {
       <section className="mb-4 mt-8">
         <h3 className="text-2xl font-bold text-on-surface mb-4 flex items-center gap-2">
           <Star className="w-6 h-6 text-primary fill-current" />
-          My Triumphs
+          Pencapaian Bunda
         </h3>
         <div className="grid grid-cols-2 gap-5">
           {/* Streak Badge */}
@@ -114,7 +114,7 @@ export default function ProfilePage() {
               <Flame className="w-6 h-6 fill-current" />
             </div>
             <span className="text-3xl font-bold text-on-primary-fixed">{currentStreak}</span>
-            <span className="text-sm font-bold text-on-surface-variant text-center leading-tight">Day Streak</span>
+            <span className="text-sm font-bold text-on-surface-variant text-center leading-tight">Hari Produktif</span>
           </div>
 
           {/* Tasks Badge */}
@@ -123,7 +123,7 @@ export default function ProfilePage() {
               <CheckCircle2 className="w-6 h-6" />
             </div>
             <span className="text-3xl font-bold text-on-secondary-container">{completedTasks}</span>
-            <span className="text-sm font-bold text-on-surface-variant text-center leading-tight">Tasks Done</span>
+            <span className="text-sm font-bold text-on-surface-variant text-center leading-tight">Agenda Selesai</span>
           </div>
         </div>
       </section>
@@ -132,7 +132,7 @@ export default function ProfilePage() {
 
       {/* Settings Menu */}
       <section className="mt-8 pb-4">
-        <h3 className="text-2xl font-bold text-on-surface mb-4 pl-2">My Journal Settings</h3>
+        <h3 className="text-2xl font-bold text-on-surface mb-4 pl-2">Pengaturan Jurnal</h3>
         <ProfileSettings />
       </section>
     </>

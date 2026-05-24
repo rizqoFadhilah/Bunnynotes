@@ -31,7 +31,7 @@ export default function GreetingHeader() {
     },
     {
       title: `Pagi yang Indah, ${name} ☀️`,
-      message: "Jangan lupa luangkan waktu sebentar buat tarik napas dan minum teh hangat ya, Bun. You're doing great! ☕"
+      message: "Jangan lupa luangkan waktu sebentar buat tarik napas dan minum teh hangat ya, Bun. Bunda hebat banget! ☕"
     },
     {
       title: `Siap Beraksi, ${name}? 🚀`,

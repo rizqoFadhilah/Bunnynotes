@@ -115,7 +115,7 @@ export default function NewTransactionPage() {
         <Link href="/money" className="w-10 h-10 flex items-center justify-center rounded-full bg-surface-container hover:scale-105 transition-transform text-primary">
           <ArrowLeft className="w-6 h-6" />
         </Link>
-        <h1 className="text-2xl font-bold text-primary tracking-tight">New Transaction</h1>
+        <h1 className="text-xl font-bold text-primary tracking-tight">Tambah Transaksi</h1>
         <div className="w-10"></div> {/* Spacer for centering */}
       </header>
 
@@ -125,8 +125,22 @@ export default function NewTransactionPage() {
           {/* Decorative Sparkle */}
           <Star className="absolute top-20 right-4 text-primary-container opacity-50 rotate-12 w-8 h-8" fill="currentColor" />
           
+          {/* Notes Area (Paling Atas) */}
+          <section className="relative mt-2">
+            <div className="absolute -top-3.5 -left-3 text-primary-container rotate-[-15deg] z-10">
+              <Heart className="w-6 h-6" fill="currentColor" />
+            </div>
+            <input 
+              type="text"
+              placeholder="Nama Transaksi (misal: Bensin, Bakso, Susu Anak)"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              className="w-full bg-surface-container-low rounded-xl px-4 py-3 border-2 border-white focus:border-dashed focus:border-primary focus:ring-0 text-sm font-bold text-on-surface-variant placeholder:text-on-surface-variant/50 shadow-sm outline-none"
+            />
+          </section>
+
           {/* Amount Input Card */}
-          <section className="bg-surface-container rounded-xl p-[24px] shadow-[0_4px_0_0_#ffc1cc] border-2 border-white relative mt-4">
+          <section className="bg-surface-container rounded-xl p-[24px] shadow-[0_4px_0_0_#ffc1cc] border-2 border-white relative mt-2">
             <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary-container px-4 py-1 rounded-full text-on-primary-container text-sm font-bold shadow-sm border-2 border-white rotate-2">
               Nominal
             </div>
@@ -139,6 +153,61 @@ export default function NewTransactionPage() {
                 onChange={(e) => setAmount(e.target.value)}
                 className="w-full bg-transparent border-none text-center text-4xl font-bold text-primary focus:ring-0 placeholder:text-primary/30 p-0 outline-none" 
               />
+            </div>
+
+            {/* Quick Helper Buttons */}
+            <div className="flex flex-wrap items-center justify-center gap-2 mt-4 pt-3 border-t border-dashed border-primary/20">
+              <button
+                type="button"
+                onClick={() => setAmount(prev => prev ? prev + '000' : '')}
+                className="px-3 py-1 bg-surface hover:bg-primary-container/30 border border-primary/20 rounded-full text-xs font-bold text-primary transition-all active:scale-95 shadow-xs"
+              >
+                +000
+              </button>
+              <button
+                type="button"
+                onClick={() => setAmount(prev => prev ? prev + '000000' : '')}
+                className="px-3 py-1 bg-surface hover:bg-primary-container/30 border border-primary/20 rounded-full text-xs font-bold text-primary transition-all active:scale-95 shadow-xs"
+              >
+                +Juta (000.000)
+              </button>
+              <button
+                type="button"
+                onClick={() => setAmount(prev => {
+                  const current = Number(prev) || 0;
+                  return String(current + 10000);
+                })}
+                className="px-3 py-1 bg-surface hover:bg-primary-container/30 border border-primary/20 rounded-full text-xs font-bold text-primary transition-all active:scale-95 shadow-xs"
+              >
+                +10k
+              </button>
+              <button
+                type="button"
+                onClick={() => setAmount(prev => {
+                  const current = Number(prev) || 0;
+                  return String(current + 50000);
+                })}
+                className="px-3 py-1 bg-surface hover:bg-primary-container/30 border border-primary/20 rounded-full text-xs font-bold text-primary transition-all active:scale-95 shadow-xs"
+              >
+                +50k
+              </button>
+              <button
+                type="button"
+                onClick={() => setAmount(prev => {
+                  const current = Number(prev) || 0;
+                  return String(current + 10000);
+                })}
+                className="px-3 py-1 bg-surface hover:bg-primary-container/30 border border-primary/20 rounded-full text-xs font-bold text-primary transition-all active:scale-95 shadow-xs"
+              >
+                +100k
+              </button>
+              <button
+                type="button"
+                onClick={() => setAmount('')}
+                className="px-3 py-1 bg-error-container/20 hover:bg-error-container/40 border border-error-container text-error rounded-full text-xs font-extrabold transition-all active:scale-95 shadow-xs"
+              >
+                Hapus
+              </button>
             </div>
           </section>
 
@@ -155,7 +224,7 @@ export default function NewTransactionPage() {
               )}
             >
               <ArrowDownToLine className="w-5 h-5" />
-              Income
+              Pemasukan
             </button>
             <button 
               type="button"
@@ -168,30 +237,30 @@ export default function NewTransactionPage() {
               )}
             >
               <ArrowUpFromLine className="w-5 h-5" />
-              Expense
+              Pengeluaran
             </button>
           </section>
 
-          {/* Categories Sticker Grid */}
-          <section className="bg-surface-container-low rounded-xl p-[24px] shadow-sm border border-outline-variant/30">
-            <div className="flex items-center justify-between mb-4">
+          {/* Categories Minimalist List Items */}
+          <section className="bg-surface-container-low rounded-xl p-[20px] shadow-sm border border-outline-variant/30">
+            <div className="flex items-center justify-between mb-3">
               <h2 className="text-sm font-bold text-on-surface-variant flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-primary" />
-                Category
+                Kategori
               </h2>
               <button 
                 type="button" 
                 onClick={() => setShowCatModal(true)}
-                className="text-xs font-bold text-primary flex items-center gap-1 bg-primary-container px-2 py-1 rounded-full border border-white shadow-sm"
+                className="text-xs font-bold text-primary flex items-center gap-1 bg-primary-container px-2.5 py-1 rounded-full border border-white shadow-xs hover:bg-primary-container-high transition active:scale-95"
               >
-                <Plus className="w-3 h-3" /> Custom
+                <Plus className="w-3.5 h-3.5" /> Tambah
               </button>
             </div>
             
             {isLoadingCats ? (
               <div className="flex justify-center p-4"><Loader2 className="animate-spin text-primary" /></div>
             ) : (
-              <div className="grid grid-cols-3 gap-4">
+              <div className="flex flex-wrap gap-2">
                 {activeCategories.map((cat) => {
                   const catId = cat.ID || cat.id || cat.Nama;
                   const isSelected = category === catId;
@@ -201,15 +270,15 @@ export default function NewTransactionPage() {
                       key={catId} 
                       type="button"
                       onClick={() => setCategory(catId)}
-                      className="flex flex-col items-center gap-2 p-2 rounded-lg hover:bg-surface-variant transition-colors group"
+                      className={clsx(
+                        "flex items-center gap-2 px-3 py-1.5 rounded-full border-2 text-xs font-extrabold transition-all active:scale-95 cursor-pointer shadow-xs",
+                        isSelected 
+                          ? 'bg-primary-container text-on-primary-container border-primary scale-102' 
+                          : 'bg-surface hover:bg-surface-container border-white/60 text-on-surface-variant'
+                      )}
                     >
-                      <div className={clsx(
-                        "w-14 h-14 rounded-full flex items-center justify-center border-2 border-white transition-all",
-                        isSelected ? 'ring-4 ring-primary bg-primary-container scale-110 shadow-none' : (cat.bgClass || 'bg-surface shadow-[0_2px_0_0_#dacefd]')
-                      )}>
-                        <SelectedIcon className={clsx("w-7 h-7", isSelected ? 'text-on-primary-container' : (cat.colorClass || 'text-secondary'))} />
-                      </div>
-                      <span className={clsx("text-xs font-bold truncate max-w-full px-1", isSelected ? 'text-primary' : 'text-on-surface-variant')}>{cat.Nama}</span>
+                      <SelectedIcon className={clsx("w-4 h-4", isSelected ? 'text-primary' : (cat.colorClass || 'text-secondary'))} />
+                      <span>{cat.Nama}</span>
                     </button>
                   )
                 })}
@@ -237,19 +306,6 @@ export default function NewTransactionPage() {
             </div>
           </section>
 
-          {/* Notes Area */}
-          <section className="relative">
-            <div className="absolute -top-4 -left-3 text-primary-container rotate-[-15deg]">
-              <Heart className="w-8 h-8" fill="currentColor" />
-            </div>
-            <textarea 
-              placeholder="Write a little note..."
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              className="w-full bg-surface-container-low rounded-xl p-4 border-2 border-white focus:border-dashed focus:border-primary focus:ring-0 text-lg text-on-surface-variant placeholder:text-on-surface-variant/50 min-h-[100px] shadow-sm resize-none outline-none"
-            ></textarea>
-          </section>
-
           {/* Save Button */}
           <section className="pt-4 pb-8">
             <button 
@@ -260,7 +316,7 @@ export default function NewTransactionPage() {
               {isSubmitting ? (
                 <><Loader2 className="w-6 h-6 animate-spin" /> Menyimpan...</>
               ) : (
-                <><CheckCircle2 className="w-6 h-6" /> Save Transaction</>
+                <><CheckCircle2 className="w-6 h-6" /> Simpan Transaksi</>
               )}
             </button>
           </section>
@@ -282,7 +338,7 @@ export default function NewTransactionPage() {
             >
               <X className="w-5 h-5" />
             </button>
-            <h2 className="text-xl font-bold text-primary mb-4">Manage Categories</h2>
+            <h2 className="text-xl font-bold text-primary mb-4">Kelola Kategori</h2>
             
             {/* Add New Category */}
             <div className="bg-surface-container-low p-4 rounded-xl border-2 border-dashed border-primary/20 mb-6">

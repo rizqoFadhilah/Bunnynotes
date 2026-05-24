@@ -2,5 +2,7 @@
   "name": "Bunnynotes",
   "description": "A cozy home and finance organizer for busy moms.",
   "requestFramePermissions": [],
-  "majorCapabilities": []
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
 }

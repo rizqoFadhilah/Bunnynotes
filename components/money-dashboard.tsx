@@ -124,6 +124,10 @@ export default function MoneyDashboard({ transactions, categories }: { transacti
       .sort((a, b) => b.value - a.value);
   }, [localTransactions, startDate, endDate, categories]);
 
+  const totalCategoryExpense = useMemo(() => {
+    return categoryData.reduce((sum, item) => sum + item.value, 0);
+  }, [categoryData]);
+
   const PIE_COLORS = [
     '#FFB2BC', // clay-pink
     '#8EE3F5', // clay-blue
@@ -270,43 +274,87 @@ export default function MoneyDashboard({ transactions, categories }: { transacti
       </section>
 
       {/* Expense by Category Pie Chart */}
-      {categoryData.length > 0 && (
-        <section className="clay-card p-[24px] [--clay-card-bg:var(--color-surface)] border-white/60 relative mt-2 transition-transform duration-300">
-          <h2 className="text-xl font-bold text-on-surface mb-4 tracking-tight">Kategori Terpopuler</h2>
-          
-          <div className="h-64 mt-2 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart margin={{ top: 20, right: 40, bottom: 20, left: 40 }}>
-                <RechartsTooltip />
-                <Pie
-                  data={categoryData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={45}
-                  outerRadius={65}
-                  paddingAngle={8}
-                  dataKey="value"
-                  animationDuration={1500}
-                  label={({ name, value }) => `${name}: ${formatShortValue(value)}`}
-                  labelLine={true}
-                  style={{ fontSize: '10px', fontWeight: 'bold' }}
-                >
-                  {categoryData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} stroke="rgba(255,255,255,0.5)" />
-                  ))}
-                </Pie>
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-          
-          <div className="mt-4 p-4 clay-card [--clay-card-bg:var(--color-tertiary-container)] border-white/60">
-            <p className="text-sm font-bold text-on-tertiary-container flex items-center justify-center gap-2">
-              <Sparkles className="w-4 h-4" />
-              {categoryData[0].name} adalah yang paling sering!
+      <section className="clay-card p-5 sm:p-[24px] [--clay-card-bg:var(--color-surface)] border-white/60 relative mt-2 transition-transform duration-300">
+        <h2 className="text-xl font-bold text-on-surface mb-2 tracking-tight">Kategori Terpopuler</h2>
+        
+        {categoryData.length > 0 ? (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center mt-2">
+              {/* Graphic container with Donut look and centered total info */}
+              <div className="h-56 col-span-1 md:col-span-5 relative flex items-center justify-center">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <RechartsTooltip formatter={(val: any) => typeof val === 'number' ? `Rp ${val.toLocaleString('id-ID')}` : `Rp ${val}`} />
+                    <Pie
+                      data={categoryData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={55}
+                      outerRadius={75}
+                      paddingAngle={4}
+                      dataKey="value"
+                      animationDuration={1200}
+                    >
+                      {categoryData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} stroke="rgba(255,255,255,0.6)" />
+                      ))}
+                    </Pie>
+                  </PieChart>
+                </ResponsiveContainer>
+                
+                {/* Absolute center label */}
+                <div className="absolute flex flex-col items-center justify-center pointer-events-none">
+                  <span className="text-[10px] uppercase tracking-wider font-extrabold text-on-surface-variant/70">Total</span>
+                  <span className="text-xs font-black text-primary">Rp {totalCategoryExpense.toLocaleString('id-ID')}</span>
+                </div>
+              </div>
+
+              {/* Clean Legend list layout */}
+              <div className="col-span-1 md:col-span-7 space-y-2">
+                {categoryData.map((entry, index) => {
+                  const percentage = totalCategoryExpense > 0 
+                    ? Math.round((entry.value / totalCategoryExpense) * 100) 
+                    : 0;
+                  const color = PIE_COLORS[index % PIE_COLORS.length];
+                  
+                  return (
+                    <div key={entry.name} className="flex items-center justify-between p-2.5 rounded-xl bg-surface-container-low border border-white/60 shadow-xs hover:bg-surface-container transition-colors duration-150">
+                      <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                        <span className="w-3.5 h-3.5 rounded-full shrink-0 shadow-xs border border-white/50" style={{ backgroundColor: color }} />
+                        <span className="text-xs font-bold text-on-surface truncate pr-1">{entry.name}</span>
+                      </div>
+                      <div className="flex items-center gap-2.5 shrink-0 ml-2">
+                        <span className="text-[9px] font-extrabold text-primary bg-primary-container px-2 py-0.5 rounded-full border border-white shrink-0">
+                          {percentage}%
+                        </span>
+                        <span className="text-xs font-black text-on-surface-variant text-right">
+                          Rp {entry.value.toLocaleString('id-ID')}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+            
+            <div className="mt-4 p-4 clay-card [--clay-card-bg:var(--color-tertiary-container)] border-white/60">
+              <p className="text-sm font-bold text-on-tertiary-container flex items-center justify-center gap-2">
+                <Sparkles className="w-4 h-4" />
+                {categoryData[0].name} adalah pengeluaran paling sering dengan total Rp {categoryData[0].value.toLocaleString('id-ID')}!
+              </p>
+            </div>
+          </>
+        ) : (
+          <div className="text-center py-10 px-4 bg-surface-container-lowest rounded-xl border-2 border-dashed border-primary/20">
+            <p className="text-on-surface-variant font-medium text-sm">
+              Belum ada data pengeluaran untuk periode <strong>{periodTitle}</strong> nih, Bun. 🌸
+            </p>
+            <p className="text-xs text-primary/70 mt-1 font-bold">
+              Yuk ubah rentang waktu di atas atau catat pengeluaran baru Bunda! 💕
             </p>
           </div>
-        </section>
-      )}
+        )}
+      </section>
 
       {/* Transaction History (Polaroid List) */}
       <section className="space-y-4">
@@ -368,40 +416,55 @@ export default function MoneyDashboard({ transactions, categories }: { transacti
           const isToday = tDate.toDateString() === new Date().toDateString();
 
           return (
-            <div key={t.ID} className="clay-card p-4 flex items-center justify-between border-white/40 transition-transform [--clay-card-bg:var(--color-surface)]">
-              <div className="flex items-center gap-4">
+            <div key={t.ID} className="clay-card py-2.5 px-3 flex items-center justify-between border-white/45 transition-transform [--clay-card-bg:var(--color-surface)]">
+              <div className="flex items-center gap-2.5 min-w-0 flex-1">
                 <div className={clsx(
-                  "w-12 h-12 clay-button flex items-center justify-center shrink-0 border-white/20",
+                  "w-10 h-10 clay-button flex items-center justify-center shrink-0 border-white/20",
                   t.Tipe === 'Income' ? "[--clay-btn-bg:var(--color-tertiary-container)] text-on-tertiary-container" : "[--clay-btn-bg:var(--color-primary-container)] text-on-primary-container"
                 )}>
-                  <Icon className="w-6 h-6" />
+                  <Icon className="w-5 h-5" />
                 </div>
-                <div>
-                  <p className="text-base font-bold text-on-surface line-clamp-1">{t.Catatan || 'Tanpa Catatan'}</p>
-                  <p className="text-xs font-bold text-primary/60 uppercase tracking-widest flex gap-1 mt-1">
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <p className="text-sm font-bold text-on-surface truncate pr-1">{t.Catatan || 'Tanpa Catatan'}</p>
+                    {category && (
+                      <span className="text-[9px] bg-secondary-container/60 text-on-secondary-container px-1.5 py-0.2 rounded-full font-bold border border-white shrink-0">
+                        {category.Nama}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-[10px] font-extrabold text-primary/60 uppercase tracking-widest mt-0.5">
                     <span>{isToday ? 'Hari ini' : tDate.toLocaleDateString('id-ID')}</span>
                   </p>
                 </div>
               </div>
-              <div className="flex flex-col items-end shrink-0 gap-2">
+              <div className="flex items-center gap-3 shrink-0 ml-2">
                 <span className={clsx(
-                  "text-sm font-bold px-4 py-1 clay-button border-white/20",
+                  "text-xs font-black px-2.5 py-1 clay-button border-white/20 whitespace-nowrap",
                   t.Tipe === 'Income' ? "text-tertiary [--clay-btn-bg:var(--color-tertiary-container)]/30" : "text-secondary [--clay-btn-bg:var(--color-secondary-container)]"
                 )}>
                   {t.Tipe === 'Income' ? '+' : '-'} Rp {Number(t.Nominal).toLocaleString('id-ID')}
                 </span>
-                <button 
-                  onClick={() => onRequestDelete(t.ID)} 
-                  disabled={isDeleting === t.ID}
-                  className={clsx(
-                    "text-xs font-bold px-2 py-1 rounded-full transition-all flex items-center gap-1",
-                    confirmDelete === t.ID ? "bg-error text-on-error" : "text-on-surface-variant hover:text-error bg-transparent"
+                
+                <div className="relative">
+                  {confirmDelete === t.ID ? (
+                    <button
+                      onClick={() => onRequestDelete(t.ID)}
+                      className="text-[10px] bg-error text-on-error px-2 py-1 rounded-full font-bold animate-pulse"
+                    >
+                      Yakin?
+                    </button>
+                  ) : (
+                    <button 
+                      onClick={() => onRequestDelete(t.ID)} 
+                      disabled={isDeleting === t.ID}
+                      className="p-1.5 text-on-surface-variant/60 hover:text-error hover:bg-error-container/10 rounded-full transition-colors duration-150"
+                      aria-label="Delete transaction"
+                    >
+                      {isDeleting === t.ID ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+                    </button>
                   )}
-                  aria-label="Delete transaction"
-                >
-                  {isDeleting === t.ID ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
-                  {confirmDelete === t.ID && <span>Yakin?</span>}
-                </button>
+                </div>
               </div>
             </div>
           );

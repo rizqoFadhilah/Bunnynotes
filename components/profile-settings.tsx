@@ -66,7 +66,7 @@ export default function ProfileSettings() {
       <div className="flex flex-col gap-4">
         
         <div className="space-y-1">
-          <label className="text-sm font-bold text-on-surface-variant ml-2">Display Name</label>
+          <label className="text-sm font-bold text-on-surface-variant ml-2">Nama Tampilan</label>
           <div className="relative">
             <div className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant">
               <User className="w-5 h-5" />
@@ -82,7 +82,7 @@ export default function ProfileSettings() {
         </div>
 
         <div className="space-y-1">
-          <label className="text-sm font-bold text-on-surface-variant ml-2">Email Address (Read-only)</label>
+          <label className="text-sm font-bold text-on-surface-variant ml-2">Alamat Email (Hanya Baca)</label>
           <div className="relative">
             <input 
               type="email" 
@@ -101,7 +101,7 @@ export default function ProfileSettings() {
           {isSaving ? (
             <>
               <Loader2 className="w-5 h-5 animate-spin" />
-              Saving...
+              Menyimpan...
             </>
           ) : saveSuccess ? (
             <>

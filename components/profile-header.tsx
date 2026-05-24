@@ -49,7 +49,7 @@ export default function ProfileHeader() {
       </div>
       
       <h2 className="text-3xl font-bold text-on-surface mt-4 text-center">{name}</h2>
-      <p className="text-sm font-bold text-outline mt-1 bg-surface-container px-3 py-1 rounded-full">Pro Planner</p>
+      <p className="text-sm font-bold text-outline mt-1 bg-surface-container px-3 py-1 rounded-full">Bunda Produktif</p>
     </div>
   );
 }

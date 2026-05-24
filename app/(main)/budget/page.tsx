@@ -222,7 +222,7 @@ export default function BudgetPage() {
         {/* Floating Action Button */}
         <Link href="/budget/new" className="fixed bottom-28 right-[20px] lg:right-[calc(50vw-240px)] z-40 clay-button text-white px-6 py-4 transition-all duration-150 flex items-center gap-2 [--clay-btn-bg:var(--color-primary)]">
           <Plus className="w-6 h-6" strokeWidth={3} />
-          <span className="text-lg font-bold tracking-tight">Set Budget</span>
+          <span className="text-lg font-bold tracking-tight">Atur Anggaran</span>
           <span className="text-xl ml-1 leading-none">🎯</span>
         </Link>
       </div>

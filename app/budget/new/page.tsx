@@ -108,7 +108,7 @@ export default function NewBudgetPage() {
         <Link href="/budget" className="w-10 h-10 flex items-center justify-center rounded-full bg-surface-container hover:scale-105 transition-transform text-primary">
           <ArrowLeft className="w-6 h-6" />
         </Link>
-        <h1 className="text-2xl font-bold text-primary tracking-tight">Set Budget</h1>
+        <h1 className="text-xl font-bold text-primary tracking-tight">Atur Anggaran</h1>
         <div className="w-10"></div> {/* Spacer for centering */}
       </header>
 
@@ -147,9 +147,9 @@ export default function NewBudgetPage() {
               <button 
                 type="button" 
                 onClick={() => setShowCatModal(true)}
-                className="text-xs font-bold text-primary flex items-center gap-1 bg-primary-container px-2 py-1 rounded-full border border-white shadow-sm"
+                className="text-xs font-bold text-primary flex items-center gap-1 bg-primary-container px-2.5 py-1 rounded-full border border-white shadow-xs hover:bg-primary-container-high transition active:scale-95"
               >
-                <Plus className="w-3 h-3" /> Custom
+                <Plus className="w-3.5 h-3.5" /> Tambah
               </button>
             </div>
             
@@ -213,7 +213,7 @@ export default function NewBudgetPage() {
             >
               <X className="w-5 h-5" />
             </button>
-            <h2 className="text-xl font-bold text-primary mb-4">Manage Categories</h2>
+            <h2 className="text-xl font-bold text-primary mb-4">Kelola Kategori</h2>
             
             {/* Add New Category */}
             <div className="bg-surface-container-low p-4 rounded-xl border-2 border-dashed border-primary/20 mb-6">
