@@ -7,6 +7,7 @@ import HomeChecklist from '@/components/home-checklist';
 import GreetingHeader from '@/components/GreetingHeader';
 import FloatingChatbot from '@/components/FloatingChatbot';
 import { useState, useEffect } from 'react';
+import { getWITDate, parseLocalDate } from '@/lib/utils';
 
 export default function HomePage() {
   const [data, setData] = useState<{
@@ -50,7 +51,7 @@ export default function HomePage() {
   let totalExpense = 0;
   let currentMonthExpense = 0;
 
-  const today = new Date();
+  const today = getWITDate();
   const currentMonth = today.getMonth();
   const currentYear = today.getFullYear();
 
@@ -61,7 +62,7 @@ export default function HomePage() {
     } else if (t.Tipe === 'Expense') {
       totalExpense += nominal;
       
-      const tDate = new Date(t.Tanggal);
+      const tDate = parseLocalDate(t.Tanggal);
       if (tDate.getMonth() === currentMonth && tDate.getFullYear() === currentYear) {
         currentMonthExpense += nominal;
       }

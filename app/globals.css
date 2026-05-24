@@ -30,6 +30,11 @@
   --color-tertiary-container: #FFF1C5;
   --color-on-tertiary-container: #6D4C41;
 
+  --color-error: #FA5252;
+  --color-on-error: #ffffff;
+  --color-error-container: #FFE3E3;
+  --color-on-error-container: #C92A2A;
+
   --color-clay-pink: #FFB2BC;
   --color-clay-blue: #8EE3F5;
   --color-clay-yellow: #FFD54F;

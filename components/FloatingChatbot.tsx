@@ -3,15 +3,16 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'motion/react';
-import { Rabbit, Send, X, RotateCcw, Sparkles, Loader2 } from 'lucide-react';
+import { Rabbit, Send, X, RotateCcw, Sparkles, Loader2, Mic, Square } from 'lucide-react';
 import { addTransaction } from '@/lib/api';
+import { getWITDateTime } from '@/lib/utils';
 
 interface Message {
   role: 'user' | 'model';
   content: string;
 }
 
-const DEFAULT_WELCOME = "Halo Bunda sayang! 🐰🌸\n\nBunBot sekarang siap bantuin Bunda catat transaksi pengeluaran/pemasukan dengan super cepat lho! ⚡💕\n\nBunda tinggal ketik aja pesan singkat seadanya, contohnya:\n✍️ *'transport bensin 5k'*\n✍️ *'makan bakso 20rb'*\n✍️ *'belanja sayur 50.000'*\n\nNanti BunBot langsung otomatis masukin datanya ke catatan keuangan Bunda dengan tanggal dan jam hari ini! Praktis banget kan, Bun? Yuk cobain sekarang! 🥰✨";
+const DEFAULT_WELCOME = "Halo Bunda sayang! 🐰🌸\n\nBunBot sekarang siap bantuin Bunda catat transaksi pengeluaran/pemasukan dengan super cepat lho! ⚡💕\n\nBunda tinggal ketik pesan singkat atau **klik icon mik 🎤** di bawah untuk langsung bercerita lewat suara Bunda! Contohnya:\n✍️ *'transport bensin 5k'*\n✍️ *'makan bakso 20rb'*\n✍️ *'Beli susu anak tadi habis 150 ribu'* via rekaman suara.\n\nNanti BunBot langsung otomatis memproses dan mencatatnya ke keuangan Bunda! Praktis banget kan? Yuk cobain sekarang! 🥰✨";
 
 const QUICK_ACTIONS = [
   { label: "🚗 Transport Bensin", prompt: "transport bensin 5k" },
@@ -30,6 +31,171 @@ export default function FloatingChatbot({ categories = [] }: { categories?: any[
   const [isLoading, setIsLoading] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const messageEndRef = useRef<HTMLDivElement>(null);
+
+  // BunBot Voice Assistant State
+  const [isRecording, setIsRecording] = useState(false);
+  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
+  const [recordSeconds, setRecordSeconds] = useState(0);
+  const [isAnalyzingVoice, setIsAnalyzingVoice] = useState(false);
+
+  useEffect(() => {
+    let timer: any;
+    if (isRecording) {
+      timer = setInterval(() => {
+        setRecordSeconds(prev => prev + 1);
+      }, 1000);
+    } else {
+      setRecordSeconds(0);
+    }
+    return () => clearInterval(timer);
+  }, [isRecording]);
+
+  const startRecording = async () => {
+    try {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error('Fitur perekaman suara tidak didukung atau diblokir di peramban ini.');
+      }
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const options = { mimeType: MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/mp4' };
+      const recorder = new MediaRecorder(stream, options);
+      const chunks: Blob[] = [];
+
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) {
+          chunks.push(e.data);
+        }
+      };
+
+      recorder.onstop = async () => {
+        const blob = new Blob(chunks, { type: options.mimeType });
+        stream.getTracks().forEach(track => track.stop());
+        await processAudioBlob(blob, options.mimeType);
+      };
+
+      recorder.start();
+      setMediaRecorder(recorder);
+      setIsRecording(true);
+    } catch (err: any) {
+      console.error('Permission mic error in Chatbot:', err);
+      const errMsg = (err.message || String(err)).toLowerCase();
+      const errName = (err.name || '').toLowerCase();
+      
+      const isDeviceNotFound = errName === 'notfounderror' || 
+                              errName === 'devicesnotfounderror' || 
+                              errMsg.includes('device not found') ||
+                              errMsg.includes('not found') ||
+                              errMsg.includes('requested device');
+      
+      const isSandboxOrIframe = errMsg.includes('permission') || 
+                                errMsg.includes('security') || 
+                                errMsg.includes('not allowed') ||
+                                errName === 'notallowederror' ||
+                                errName === 'securityerror';
+
+      let friendlyError = '';
+      if (isDeviceNotFound) {
+        friendlyError = 'Aduh Bunda sayang, BunBot tidak menemukan perangkat mikrofon yang aktif di HP/laptop/browser Bunda saat ini. 🎤❌\n\nBunda bisa menghubungkan mikrofon terlebih dahulu, atau langsung ketik cerita keuangan Bunda kapan saja di kolom teks di bawah ya! Tetap super praktis kok! 💕';
+      } else if (isSandboxOrIframe) {
+        friendlyError = 'Aduh Bunda sayang, fitur perekaman suara terhalang oleh aturan keamanan browser atau sandboxing iframe di penampil ini. 🔒\n\nBunda bisa **Membuka Aplikasi di Tab Baru** (lewat tombol panah di kanan atas layar) untuk mencobanya secara penuh, atau ketik langsung ceritanya di kolom chat bawah ya! 🥰🌸';
+      } else {
+        friendlyError = `Aduh Bunda sayang, BunBot belum bisa mengakses mikrofon saat ini (${err.message || 'Izin ditolak'}). 😢\n\nPastikan Bunda sudah mengizinkan mikrofon di browser, atau ceritakan langsung lewat ketikan di kolom chat bawah ya! 🌸`;
+      }
+
+      setMessages(prev => [...prev, {
+        role: 'model',
+        content: friendlyError
+      }]);
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorder && isRecording) {
+      mediaRecorder.stop();
+      setIsRecording(false);
+    }
+  };
+
+  const processAudioBlob = async (blob: Blob, mimeType: string) => {
+    setIsAnalyzingVoice(true);
+    // Add temporary message indicating recording is analyzing
+    setMessages(prev => [...prev, {
+      role: 'user',
+      content: '🎤 *[Pesan suara dikirim oleh Bunda]*'
+    }]);
+
+    try {
+      const reader = new FileReader();
+      reader.readAsDataURL(blob);
+      reader.onloadend = async () => {
+        const base64data = reader.result as string;
+        const base64Payload = base64data.split(',')[1];
+
+        const response = await fetch('/api/gemini/voice-transaction', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            audioBase64: base64Payload,
+            mimeType: mimeType,
+            availableCategories: categories
+          })
+        });
+
+        const result = await response.json();
+        if (!result.success) {
+          throw new Error(result.error || 'Gagal menganalisis cerita Bunda.');
+        }
+
+        const { nominal, tipe, kategori_rekomendasi, catatan } = result.data;
+
+        if (nominal) {
+          // Automatic Transaction Insertion
+          const wit = getWITDateTime();
+          const dateStr = wit.dateStr;
+          const timeStr = wit.timeStr;
+
+          // Match category name
+          const matchedCategory = categories.find(
+            c => String(c.Nama).toLowerCase() === String(kategori_rekomendasi).toLowerCase() ||
+                 String(c.ID || c.id).toLowerCase() === String(kategori_rekomendasi).toLowerCase()
+          );
+          const categoryValue = matchedCategory ? (matchedCategory.ID || matchedCategory.id) : (kategori_rekomendasi || 'Food');
+
+          const newTransaction = {
+            Tipe: tipe || 'Expense',
+            Kategori: categoryValue,
+            Nominal: Number(nominal) || 0,
+            Catatan: catatan || '',
+            Tanggal: dateStr,
+            Waktu: timeStr
+          };
+
+          await addTransaction(newTransaction);
+          router.refresh();
+
+          const readableTipe = tipe === 'Income' ? 'Pemasukan' : 'Pengeluaran';
+          setMessages(prev => [...prev, {
+            role: 'model',
+            content: `Wah Bun, BunBot udah denger cerita rekaman suara Bunda! 🐰🌸\n\nBunBot bantu catetin otomatis ya:\n🌟 **Jenis**: ${readableTipe}\n💰 **Nominal**: Rp ${Number(nominal).toLocaleString('id-ID')}\n📂 **Kategori**: ${matchedCategory ? matchedCategory.Nama : categoryValue}\n📝 **Catatan**: "${catatan || 'Tanpa Catatan'}"\n\nTransaksi Bunda beneran udah berhasil disimpan dengan rapi! Hebat banget Bunda hari ini! 🥰✨`
+          }]);
+        } else {
+          setMessages(prev => [...prev, {
+            role: 'model',
+            content: `Aduh Bun, BunBot kurang bisa menangkap angka nominal transaksi dalam cerita suara Bunda tadi. 😢\nBisa tolong rekam ulang ceritanya dengan menyebutkan nominal nominal atau ketik langsung di kolom chat ya, Bun? 💕`
+          }]);
+        }
+      };
+    } catch (err: any) {
+      console.error('Error processing audio in chatbot:', err);
+      setMessages(prev => [...prev, {
+        role: 'model',
+        content: `Wah Bunda sayang, sepertinya BunBot gagal memproses suara rekaman. Cerita Bunda tadi boleh diketik langsung atau dicoba direkam ulang dengan lebih dekat ke mic ya? 🐰🌸`
+      }]);
+    } finally {
+      setIsAnalyzingVoice(false);
+    }
+  };
 
   // Load history from localStorage only on client-side mount
   useEffect(() => {
@@ -91,15 +257,9 @@ export default function FloatingChatbot({ categories = [] }: { categories?: any[
       
       // If a valid transaction has been parsed by AI, insert it into the database directly on behalf of the user
       if (data.isTransaction && data.transaction) {
-        const now = new Date();
-        const yyyy = now.getFullYear();
-        const mm = String(now.getMonth() + 1).padStart(2, '0');
-        const dd = String(now.getDate()).padStart(2, '0');
-        const hh = String(now.getHours()).padStart(2, '0');
-        const min = String(now.getMinutes()).padStart(2, '0');
-        
-        const dateStr = `${yyyy}-${mm}-${dd}`;
-        const timeStr = `${hh}:${min}`;
+        const wit = getWITDateTime();
+        const dateStr = wit.dateStr;
+        const timeStr = wit.timeStr;
 
         // Match category object to find the ID if possible, otherwise send standard category name string
         const matchedCategory = categories.find(
@@ -232,6 +392,15 @@ export default function FloatingChatbot({ categories = [] }: { categories?: any[
                   </div>
                 </div>
               )}
+
+              {isAnalyzingVoice && (
+                <div className="self-start flex flex-col items-start max-w-[85%]">
+                  <div className="bg-surface-container text-on-surface border-white/60 border-2 rounded-2xl rounded-bl-sm p-3 text-xs font-medium shadow-xs flex items-center gap-2">
+                    <Loader2 className="w-3.5 h-3.5 animate-spin text-primary animate-pulse" />
+                    <span>BunBot sedang memahami suara Bunda... 🐰🌸</span>
+                  </div>
+                </div>
+              )}
               <div ref={messageEndRef} />
             </div>
 
@@ -256,7 +425,7 @@ export default function FloatingChatbot({ categories = [] }: { categories?: any[
               </div>
             )}
 
-            {/* Input Form Footer */}
+            {/* Input Form Footer & Voice Record Toggle */}
             <form
               id="bunbot-input-form"
               onSubmit={(e) => {
@@ -265,23 +434,58 @@ export default function FloatingChatbot({ categories = [] }: { categories?: any[
               }}
               className="flex items-center gap-1.5 pt-2 border-t border-secondary-container"
             >
-              <input
-                id="chatbot-text-input"
-                type="text"
-                value={inputText}
-                onChange={(e) => setInputText(e.target.value)}
-                placeholder="Tulis transaksi cepat, misal: bensin 5k"
-                disabled={isLoading}
-                className="flex-1 bg-surface-container border-white border-2 rounded-xl py-2 px-3 text-xs font-bold text-on-surface placeholder:text-on-surface-variant/60 outline-hidden focus:ring-2 focus:ring-primary transition"
-              />
-              <button
-                id="chatbot-submit"
-                type="submit"
-                disabled={!inputText.trim() || isLoading}
-                className="clay-button p-2 w-9 h-9 flex items-center justify-center text-white disabled:opacity-50 disabled:scale-100 cursor-pointer [--clay-btn-bg:var(--color-primary)] [--clay-btn-highlight:rgba(255,255,255,0.4)]"
-              >
-                <Send className="w-4 h-4" />
-              </button>
+              {isRecording ? (
+                <div className="flex-1 flex items-center justify-between bg-red-50 rounded-xl px-3 py-1.5 border-2 border-red-200">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping shrink-0" />
+                    <span className="text-xs font-black text-red-600">BunBot merekam... {recordSeconds}s</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={stopRecording}
+                    className="w-9 h-9 rounded-full bg-red-500 hover:bg-red-600 flex items-center justify-center text-white shadow-md active:scale-95 transition-all outline-hidden shrink-0 cursor-pointer"
+                    title="Selesai Bicara (Hentikan Rekam)"
+                    aria-label="Selesai Bicara (Hentikan Rekam)"
+                  >
+                    <Square className="w-4 h-4 fill-white text-white" />
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    disabled={isLoading || isAnalyzingVoice}
+                    onClick={startRecording}
+                    className={`p-2 w-9 h-9 flex items-center justify-center rounded-xl border border-white transition-all hover:scale-105 active:scale-95 text-primary ${
+                      isAnalyzingVoice ? 'bg-surface-container opacity-50' : 'bg-primary-container/[0.3] hover:bg-primary-container/[0.5]'
+                    }`}
+                    title="Ceritakan Lewat Suara"
+                  >
+                    {isAnalyzingVoice ? (
+                      <Loader2 className="w-4 h-4 animate-spin text-primary" />
+                    ) : (
+                      <Mic className="w-4 h-4 text-primary" />
+                    )}
+                  </button>
+                  <input
+                    id="chatbot-text-input"
+                    type="text"
+                    value={inputText}
+                    onChange={(e) => setInputText(e.target.value)}
+                    placeholder={isAnalyzingVoice ? "BunBot sedang mendengarkan..." : "Tulis cerita transaksi cepat..."}
+                    disabled={isLoading || isAnalyzingVoice}
+                    className="flex-1 bg-surface-container border-white border-2 rounded-xl py-2 px-3 text-xs font-bold text-on-surface placeholder:text-on-surface-variant/60 outline-hidden focus:ring-2 focus:ring-primary transition"
+                  />
+                  <button
+                    id="chatbot-submit"
+                    type="submit"
+                    disabled={!inputText.trim() || isLoading || isAnalyzingVoice}
+                    className="clay-button p-2 w-9 h-9 flex items-center justify-center text-white disabled:opacity-50 disabled:scale-100 cursor-pointer [--clay-btn-bg:var(--color-primary)] [--clay-btn-highlight:rgba(255,255,255,0.4)]"
+                  >
+                    <Send className="w-4 h-4" />
+                  </button>
+                </>
+              )}
             </form>
           </motion.div>
         )}

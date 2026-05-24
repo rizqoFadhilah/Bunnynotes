@@ -6,6 +6,7 @@ import clsx from 'clsx';
 import { Pin, HelpCircle, ChevronLeft, ChevronRight, Filter, X, Trash2, Loader2 } from 'lucide-react';
 import { Utensils, Home, Baby, Sparkles, Car, PiggyBank, ShoppingBag, Briefcase, Heart, Smile } from 'lucide-react';
 import { deleteTransaction } from '@/lib/api';
+import { getWITDate, getWITDateTime, parseLocalDate } from '@/lib/utils';
 import { 
   PieChart, 
   Pie, 
@@ -37,14 +38,14 @@ export default function MoneyDashboard({ transactions, categories }: { transacti
 
   // DATE LOGIC
   const { startDate, endDate, labels, periodTitle } = useMemo(() => {
-    const now = new Date();
-    let start = new Date();
-    let end = new Date();
+    const now = getWITDate();
+    let start = new Date(now);
+    let end = new Date(now);
     let labels: string[] = [];
     let periodTitle = '';
 
     if (timeRange === 'week') {
-      const baseDate = new Date();
+      const baseDate = new Date(now);
       baseDate.setDate(now.getDate() + (offset * 7));
       let dayOfWeek = baseDate.getDay();
       if (dayOfWeek === 0) dayOfWeek = 7;
@@ -82,7 +83,7 @@ export default function MoneyDashboard({ transactions, categories }: { transacti
     
     localTransactions.forEach((t: any) => {
       if (t.Tipe === 'Expense') {
-        const tDate = new Date(t.Tanggal);
+        const tDate = parseLocalDate(t.Tanggal);
         if (tDate >= startDate && tDate <= endDate) {
           if (timeRange === 'week') {
             let day = tDate.getDay();
@@ -111,7 +112,7 @@ export default function MoneyDashboard({ transactions, categories }: { transacti
   const categoryData = useMemo(() => {
     const dataMap: Record<string, number> = {};
     localTransactions.forEach((t: any) => {
-      const tDate = new Date(t.Tanggal);
+      const tDate = parseLocalDate(t.Tanggal);
       if (t.Tipe === 'Expense' && tDate >= startDate && tDate <= endDate) {
         const catId = t.Kategori;
         const category = categories.find(c => c.ID === catId || c.Nama === catId);
@@ -166,8 +167,8 @@ export default function MoneyDashboard({ transactions, categories }: { transacti
     }
     
     return result.sort((a, b) => {
-      const dateA = new Date(a.Tanggal + 'T' + (a.Waktu || '00:00:00')).getTime();
-      const dateB = new Date(b.Tanggal + 'T' + (b.Waktu || '00:00:00')).getTime();
+      const dateA = parseLocalDate(a.Tanggal, a.Waktu).getTime();
+      const dateB = parseLocalDate(b.Tanggal, b.Waktu).getTime();
       return dateB - dateA;
     });
   }, [localTransactions, filterCategory, filterStartDate, filterEndDate, categories]);
@@ -412,8 +413,8 @@ export default function MoneyDashboard({ transactions, categories }: { transacti
           const rot = idx % 2 === 0 ? 'rotate-1' : '-rotate-1';
           const category = categories.find((c: any) => c.ID === t.Kategori || c.Nama === t.Kategori);
           const Icon = category && ICON_MAP[category.Icon] ? ICON_MAP[category.Icon] : HelpCircle;
-          const tDate = new Date(t.Tanggal);
-          const isToday = tDate.toDateString() === new Date().toDateString();
+          const tDate = parseLocalDate(t.Tanggal);
+          const isToday = t.Tanggal === getWITDateTime().dateStr;
 
           return (
             <div key={t.ID} className="clay-card py-2.5 px-3 flex items-center justify-between border-white/45 transition-transform [--clay-card-bg:var(--color-surface)]">
@@ -434,7 +435,7 @@ export default function MoneyDashboard({ transactions, categories }: { transacti
                     )}
                   </div>
                   <p className="text-[10px] font-extrabold text-primary/60 uppercase tracking-widest mt-0.5">
-                    <span>{isToday ? 'Hari ini' : tDate.toLocaleDateString('id-ID')}</span>
+                    <span>{isToday ? 'Hari ini' : tDate.toLocaleDateString('id-ID')} {t.Waktu ? `• ${t.Waktu.substring(0, 5)}` : ''}</span>
                   </p>
                 </div>
               </div>

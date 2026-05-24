@@ -4,6 +4,7 @@ import { Rabbit } from 'lucide-react';
 import { useAuth } from '@/components/AuthProvider';
 import { useState, useEffect } from 'react';
 import { getProfile } from '@/lib/api';
+import { getWITDate } from '@/lib/utils';
 
 export default function GreetingHeader() {
   const { user } = useAuth();
@@ -23,7 +24,7 @@ export default function GreetingHeader() {
     loadProfile();
   }, [user]);
 
-  const today = new Date();
+  const today = getWITDate();
   const greetings = [
     {
       title: `Halo, ${name} 🌸`,

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { ArrowLeft, Star, ArrowDownToLine, ArrowUpFromLine, Utensils, Home, Baby, Sparkles, Car, PiggyBank, ShoppingBag, Briefcase, Heart, Smile, Calendar, Clock, CheckCircle2, Loader2, Plus, X, Trash2, HelpCircle, Rabbit } from 'lucide-react';
 import Link from 'next/link';
 import { addTransaction, getCategories, addCategory, deleteCategory } from '@/lib/api';
+import { getWITDateTime } from '@/lib/utils';
 import clsx from 'clsx';
 import Image from 'next/image';
 
@@ -23,8 +24,8 @@ export default function NewTransactionPage() {
   const [amount, setAmount] = useState('');
   const [type, setType] = useState('Expense');
   const [category, setCategory] = useState('Food');
-  const [date, setDate] = useState(() => new Date().toISOString().split('T')[0]);
-  const [time, setTime] = useState(() => new Date().toTimeString().split(' ')[0].substring(0, 5));
+  const [date, setDate] = useState(() => getWITDateTime().dateStr);
+  const [time, setTime] = useState(() => getWITDateTime().timeStr);
   const [notes, setNotes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
