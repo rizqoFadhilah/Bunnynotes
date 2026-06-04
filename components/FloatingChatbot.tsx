@@ -220,10 +220,12 @@ export default function FloatingChatbot({ categories = [] }: { categories?: any[
         const base64data = reader.result as string;
         const base64Payload = base64data.split(',')[1];
 
+        const userApiKey = typeof window !== 'undefined' ? localStorage.getItem('bunybot_gemini_api_key') || '' : '';
         const response = await fetch('/api/gemini/voice-transaction', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            ...(userApiKey ? { 'x-gemini-api-key': userApiKey } : {})
           },
           body: JSON.stringify({
             audioBase64: base64Payload,
@@ -345,10 +347,12 @@ export default function FloatingChatbot({ categories = [] }: { categories?: any[
       const chatHistory = [...messages, userMessage];
       const categoryNames = categories.map(c => c.Nama);
 
+      const userApiKey = typeof window !== 'undefined' ? localStorage.getItem('bunybot_gemini_api_key') || '' : '';
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...(userApiKey ? { 'x-gemini-api-key': userApiKey } : {})
         },
         body: JSON.stringify({ 
           messages: chatHistory,

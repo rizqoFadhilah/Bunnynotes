@@ -3,11 +3,11 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
   try {
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = req.headers.get("x-gemini-api-key") || process.env.GEMINI_API_KEY;
     if (!apiKey) {
       return NextResponse.json({
         success: false,
-        error: "Kunci API (GEMINI_API_KEY) belum dikonfigurasi di panel Secrets. Silakan setel terlebih dahulu di Settings app.",
+        error: "Kunci API Gemini belum dikonfigurasi. Silakan pasang Terlebih dahulu di tab Profil Bunda ya sayang! 🐰✨",
       }, { status: 400 });
     }
 

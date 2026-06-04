@@ -3,12 +3,12 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
   try {
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = req.headers.get("x-gemini-api-key") || process.env.GEMINI_API_KEY;
     if (!apiKey) {
-      console.warn("GEMINI_API_KEY is not set in environment variables.");
+      console.warn("GEMINI_API_KEY is not set in environment variables or headers.");
       return NextResponse.json({
         isTransaction: false,
-        reply: "Halo Bunda sayang! BunyBot sangat ingin membantu Bunda mencatat keuangan secara otomatis 🐰🌸 Tapi sepertinya kunci API (GEMINI_API_KEY) belum dikonfigurasi di pengaturan aplikasi nih. Mohon disetel dulu ya di bagian Settings > Secrets agar BunyBot bisa berjalan dengan pintar! 💕✨"
+        reply: "Halo Bunda sayang! BunyBot sangat ingin membantu Bunda mencatat keuangan secara otomatis 🐰🌸\n\nTapi sepertinya Kunci API Gemini belum dipasang nih. 😢\n\n**Cara mengaktifkannya sangat mudah lho!** 👇\n1. Masuk ke tab **Profil** Bunda di menu navigasi bawah.\n2. Di bagian **Kunci API Gemini (Opsional)**, masukkan Kunci API Bunda sendiri.\n3. Jika belum punya, klik link **Dapatkan Kunci Gratis** di sebelahnya untuk dapet kunci gratis langsung dari Google! 🔑✨\n4. Simpan, dan BunyBot siap bantu catat transaksi Bunda dengan super cepat! 💕"
       });
     }
 
