@@ -30,7 +30,8 @@ export default function MoneyDashboard({ transactions, categories }: { transacti
     setLocalTransactions(transactions);
   }, [transactions]);
   
-  const [filterCategory, setFilterCategory] = useState<string>('All');
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [filterStartDate, setFilterStartDate] = useState<string>('');
   const [filterEndDate, setFilterEndDate] = useState<string>('');
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
@@ -154,8 +155,12 @@ export default function MoneyDashboard({ transactions, categories }: { transacti
   const filteredTransactions = useMemo(() => {
     let result = [...localTransactions];
     
-    if (filterCategory !== 'All') {
-      result = result.filter(t => t.Kategori === filterCategory || categories.find(c => c.ID === t.Kategori)?.Nama === filterCategory);
+    if (selectedCategories.length > 0) {
+      result = result.filter(t => {
+        const catID = t.Kategori;
+        const catName = categories.find(c => c.ID === catID)?.Nama;
+        return selectedCategories.includes(catID) || (catName && selectedCategories.includes(catName));
+      });
     }
     
     if (filterStartDate) {
@@ -171,7 +176,7 @@ export default function MoneyDashboard({ transactions, categories }: { transacti
       const dateB = parseLocalDate(b.Tanggal, b.Waktu).getTime();
       return dateB - dateA;
     });
-  }, [localTransactions, filterCategory, filterStartDate, filterEndDate, categories]);
+  }, [localTransactions, selectedCategories, filterStartDate, filterEndDate, categories]);
 
   const handleDelete = async (id: string) => {
     setIsDeleting(id);
@@ -363,18 +368,109 @@ export default function MoneyDashboard({ transactions, categories }: { transacti
           <h2 className="text-2xl font-bold text-on-surface pl-2">Daftar Transaksi</h2>
           
           <div className="flex flex-wrap items-center gap-2 px-2 sm:px-0">
-            <div className="relative flex items-center bg-surface-container rounded-lg px-3 py-2 border-2 border-white sticker-shadow">
-              <Filter className="w-4 h-4 text-on-surface-variant mr-2" />
-              <select 
-                value={filterCategory}
-                onChange={(e) => setFilterCategory(e.target.value)}
-                className="bg-transparent text-sm font-medium text-on-surface outline-none appearance-none pr-4"
+            {/* Custom Multi-Select Category Dropdown */}
+            <div className="relative">
+              <button 
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                className="relative flex items-center bg-surface-container rounded-lg px-3 py-2 border-2 border-white sticker-shadow text-sm font-medium text-on-surface hover:bg-surface-container-high transition-all"
               >
-                <option value="All">Semua Kategori</option>
-                {categories.map((c: any) => (
-                  <option key={c.ID} value={c.ID}>{c.Nama}</option>
-                ))}
-              </select>
+                <Filter className="w-4 h-4 text-on-surface-variant mr-2" />
+                <span>
+                  {selectedCategories.length === 0 
+                    ? "Semua Kategori" 
+                    : selectedCategories.length === 1 
+                      ? categories.find(c => c.ID === selectedCategories[0] || c.Nama === selectedCategories[0])?.Nama || "1 Kategori"
+                      : `${selectedCategories.length} Kategori`
+                  }
+                </span>
+                <span className="ml-2 text-[10px] opacity-60">▼</span>
+              </button>
+
+              {isDropdownOpen && (
+                <>
+                  {/* Backdrop overlay to close the dropdown when clicking outside */}
+                  <div 
+                    className="fixed inset-0 z-40" 
+                    onClick={() => setIsDropdownOpen(false)} 
+                  />
+                  
+                  {/* Dropdown Card */}
+                  <div className="absolute left-0 mt-2 w-60 clay-card p-3 bg-surface border border-white/60 z-50 max-h-80 overflow-y-auto sticker-shadow">
+                    <div className="flex items-center justify-between pb-2 mb-2 border-b border-on-surface-variant/10">
+                      <span className="text-xs font-bold text-on-surface-variant">Pilih Kategori</span>
+                      {selectedCategories.length > 0 && (
+                        <button 
+                          onClick={() => setSelectedCategories([])}
+                          className="text-[11px] font-extrabold text-primary hover:underline"
+                        >
+                          Reset
+                        </button>
+                      )}
+                    </div>
+                    
+                    <div className="space-y-1">
+                      {/* Option: Semua Kategori */}
+                      <button
+                        onClick={() => {
+                          setSelectedCategories([]);
+                          setIsDropdownOpen(false);
+                        }}
+                        className={clsx(
+                          "w-full text-left px-2 py-1.5 rounded-md text-xs font-bold flex items-center justify-between transition-colors",
+                          selectedCategories.length === 0 
+                            ? "bg-primary-container text-on-primary-container" 
+                            : "hover:bg-surface-variant/40 text-on-surface"
+                        )}
+                      >
+                        <span className="flex items-center gap-2">
+                          <span className="w-5 h-5 rounded-full bg-surface-variant/40 flex items-center justify-center">✨</span>
+                          Semua Kategori
+                        </span>
+                        {selectedCategories.length === 0 && <span className="text-primary text-[10px] font-black">✔</span>}
+                      </button>
+
+                      {/* Options: Categories */}
+                      {categories.map((c: any) => {
+                        const CategoryIcon = ICON_MAP[c.Icon] || HelpCircle;
+                        const isSelected = selectedCategories.includes(c.ID) || selectedCategories.includes(c.Nama);
+                        
+                        return (
+                          <button
+                            key={c.ID}
+                            onClick={() => {
+                              const valueToSearch = c.ID;
+                              if (isSelected) {
+                                setSelectedCategories(prev => prev.filter(id => id !== valueToSearch && id !== c.Nama));
+                              } else {
+                                setSelectedCategories(prev => [...prev, valueToSearch]);
+                              }
+                            }}
+                            className={clsx(
+                              "w-full text-left px-2 py-1.5 rounded-md text-xs font-bold flex items-center justify-between transition-colors",
+                              isSelected 
+                                ? "bg-primary-container/75 text-on-primary-container" 
+                                : "hover:bg-surface-variant/40 text-on-surface"
+                            )}
+                          >
+                            <span className="flex items-center gap-2">
+                              <span className="w-5 h-5 rounded-full bg-surface-variant/40 flex items-center justify-center text-on-surface">
+                                <CategoryIcon className="w-3.5 h-3.5" />
+                              </span>
+                              {c.Nama}
+                            </span>
+                            <input 
+                              type="checkbox" 
+                              checked={isSelected}
+                              readOnly
+                              className="accent-primary h-3.5 w-3.5 cursor-pointer rounded"
+                            />
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
             
             <div className="relative flex items-center bg-surface-container rounded-lg px-3 py-2 border-2 border-white sticker-shadow text-xs font-semibold gap-1">
